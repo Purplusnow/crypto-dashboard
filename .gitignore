@@ -1,0 +1,5 @@
+.DS_Store
+node_modules/
+
+# reset 시 자동 생성되는 백업
+data/.backup-*.json

@@ -1,0 +1,55 @@
+[
+  {
+    "date": "2026-08-12",
+    "balances": {
+      "BT": {
+        "usdt": 0,
+        "krw": 328482
+      },
+      "OK": {
+        "usdt": 0
+      },
+      "NA": {
+        "usdt": 70
+      },
+      "BC": {
+        "usdt": 0,
+        "staked": 0
+      },
+      "BF": {
+        "usdt": 0,
+        "staked": 16
+      }
+    },
+    "fx": 1411,
+    "note": "기준일 (평가액 45만원)"
+  },
+  {
+    "date": "2026-08-13",
+    "balances": {
+      "BT": {
+        "usdt": 0,
+        "krw": 150000
+      },
+      "OK": {
+        "usdt": 0
+      },
+      "NA": {
+        "usdt": 142
+      },
+      "BC": {
+        "usdt": 0,
+        "staked": 0,
+        "dividend": 0,
+        "avgDiv": 0
+      },
+      "BF": {
+        "usdt": 0,
+        "staked": 16,
+        "avgDiv": 0
+      }
+    },
+    "fx": 1412,
+    "note": "실데이터 시작"
+  }
+]

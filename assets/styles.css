@@ -1,0 +1,248 @@
+/* ------------------------------------------------------------------ 토큰 */
+:root {
+  color-scheme: light;
+
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.1);
+  --border-strong: rgba(11, 11, 11, 0.16);
+  --wash: rgba(11, 11, 11, 0.04);
+  --shadow-pop: 0 8px 24px rgba(11, 11, 11, 0.12);
+
+  /* 계좌 = 카테고리 슬롯 1~5 (고정 배정, 절대 순환/재배정하지 않음) */
+  --acct-BT: #2a78d6;
+  --acct-OK: #eb6834;
+  --acct-NA: #1baf7a;
+  --acct-BC: #eda100;
+  --acct-BF: #e87ba4;
+
+  /* 다이버징: 국내 관례에 맞춰 상승=적, 하락=청. 부호와 화살표를 항상 동반한다 */
+  --up: #e34948;
+  --down: #2a78d6;
+  --up-ink: #c22f2e;
+  --down-ink: #1c5cab;
+
+  --ref: #898781; /* 원금선 등 기준 계열 */
+
+  --r: 10px;
+  --font: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+/* 다크는 OS 설정을 따르거나 토글로 켠다. 두 곳 모두에 같은 값을 둔다 —
+   미디어 쿼리는 OS 설정을, data-theme 는 사용자의 명시적 선택을 담당한다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --wash: rgba(255, 255, 255, 0.06);
+    --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.6);
+    --acct-BT: #3987e5;
+    --acct-OK: #d95926;
+    --acct-NA: #199e70;
+    --acct-BC: #c98500;
+    --acct-BF: #d55181;
+    --up: #e66767;
+    --down: #3987e5;
+    --up-ink: #e66767;
+    --down-ink: #6da7ec;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --wash: rgba(255, 255, 255, 0.06);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --acct-BT: #3987e5;
+  --acct-OK: #d95926;
+  --acct-NA: #199e70;
+  --acct-BC: #c98500;
+  --acct-BF: #d55181;
+  --up: #e66767;
+  --down: #3987e5;
+  --up-ink: #e66767;
+  --down-ink: #6da7ec;
+}
+
+/* ------------------------------------------------------------------ 기본 */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--page);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+a { color: inherit; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+
+/* ---------------------------------------------------------------- 헤더 */
+.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.top h1 { font-size: 19px; }
+.top .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+.banner {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.banner strong { color: var(--text-primary); }
+
+/* 필터: 차트 위 한 줄, 아래 전부를 스코프한다 */
+.filters {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 20px 0 18px;
+}
+.segmented {
+  display: inline-flex; padding: 2px; gap: 2px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+}
+.segmented button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: 13px; color: var(--text-secondary);
+  padding: 5px 11px; border-radius: 6px; white-space: nowrap;
+}
+.segmented button:hover { background: var(--wash); }
+.segmented button[aria-pressed="true"] { background: var(--text-primary); color: var(--surface-1); }
+.filters .spacer { flex: 1; }
+.filters .label { color: var(--muted); font-size: 12px; }
+
+/* ------------------------------------------------------------- 카드/그리드 */
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 18px 14px;
+}
+.card > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.card h2 { font-size: 14px; }
+.card .hint { color: var(--muted); font-size: 12px; }
+
+.grid { display: grid; gap: 14px; }
+.grid.k2 { grid-template-columns: 1fr 1fr; }
+.grid.k3 { grid-template-columns: repeat(3, 1fr); }
+.grid.k4 { grid-template-columns: repeat(4, 1fr); }
+.grid.wide { grid-template-columns: 1.5fr 1fr; align-items: start; }
+@media (max-width: 900px) {
+  .grid.k2, .grid.k3, .grid.k4, .grid.wide { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .grid.k2, .grid.k3, .grid.k4, .grid.wide { grid-template-columns: 1fr; }
+}
+
+section { margin-top: 22px; }
+section > h2.section-title { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 10px; text-transform: none; }
+
+/* --------------------------------------------------------------- 히어로 */
+.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.hero .label { color: var(--text-secondary); font-size: 13px; }
+.hero .value { font-size: 52px; font-weight: 600; line-height: 1.05; letter-spacing: -0.02em; margin-top: 4px; }
+.hero .alt { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.hero .side { text-align: right; }
+.hero .side .row { display: flex; align-items: baseline; gap: 8px; justify-content: flex-end; }
+.hero .side .k { color: var(--muted); font-size: 12px; }
+.hero .side .v { font-size: 15px; font-weight: 600; }
+
+/* ------------------------------------------------------------- 스탯 타일 */
+.tile .label { color: var(--text-secondary); font-size: 12.5px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 4px; letter-spacing: -0.01em; }
+.tile .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px 10px; margin-top: 6px; min-height: 32px; flex-wrap: wrap; }
+.tile .delta { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tile .note { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.tile .spark { display: block; margin-left: auto; }
+.up { color: var(--up-ink); }
+.down { color: var(--down-ink); }
+.flat { color: var(--muted); }
+
+/* ---------------------------------------------------------------- 차트 */
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; overflow: visible; }
+.chart svg:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; border-radius: 4px; }
+.chart .tick { font-size: 11px; font-family: var(--font); font-variant-numeric: tabular-nums; }
+
+.tip {
+  position: absolute; z-index: 5; pointer-events: none;
+  /* 배경은 카드와 같은 표면을 유지한다 — 계좌 색이 검증된 면 위에 있어야 한다.
+     분리는 테두리와 그림자로 만든다. */
+  background: var(--surface-1); border: 1px solid var(--border-strong);
+  border-radius: 8px; padding: 8px 10px; min-width: 132px;
+  box-shadow: var(--shadow-pop);
+}
+.tip-title { font-size: 11.5px; color: var(--muted); margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+.tip-row { display: flex; align-items: center; gap: 6px; line-height: 1.7; }
+.tip-key { width: 10px; height: 2px; border-radius: 1px; flex: none; }
+.tip-key-blank { background: transparent; }
+.tip-val { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-primary); margin-left: auto; order: 2; }
+.tip-lab { font-size: 12px; color: var(--text-secondary); order: 1; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.legend-line { width: 14px; height: 2px; border-radius: 1px; flex: none; }
+
+/* ------------------------------------------------------------- 자산 배분 */
+.alloc-bar { display: flex; gap: 2px; height: 22px; margin: 10px 0 14px; }
+.alloc-seg { border-radius: 3px; min-width: 2px; }
+.alloc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.alloc-list li { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.alloc-name { color: var(--text-secondary); }
+.alloc-val { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
+.alloc-pct { color: var(--muted); font-variant-numeric: tabular-nums; width: 46px; text-align: right; }
+
+/* ---------------------------------------------------------------- 표 */
+.table-wrap { overflow-x: auto; margin-top: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { padding: 7px 10px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+thead th { color: var(--muted); font-weight: 600; font-size: 11.5px; border-bottom: 1px solid var(--baseline); position: sticky; top: 0; background: var(--surface-1); }
+tbody tr { border-bottom: 1px solid var(--grid); }
+tbody tr:hover { background: var(--wash); }
+tbody tr:last-child { border-bottom: 0; }
+td .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+details.tableview { margin-top: 14px; }
+details.tableview > summary {
+  cursor: pointer; font-size: 12.5px; color: var(--text-secondary);
+  list-style: none; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-1);
+}
+details.tableview > summary::-webkit-details-marker { display: none; }
+details.tableview > summary::before { content: "▸"; color: var(--muted); }
+details.tableview[open] > summary::before { content: "▾"; }
+
+/* ---------------------------------------------------------------- 기타 */
+.empty { padding: 40px 18px; text-align: center; color: var(--muted); }
+.empty code { background: var(--wash); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+.foot-note { margin-top: 26px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.acct-head { display: flex; align-items: center; gap: 7px; }
+.acct-head .swatch { width: 9px; height: 9px; }
+.yield-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }

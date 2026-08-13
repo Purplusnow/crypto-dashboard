@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto P&amp;L Dashboard</title>
+<meta name="description" content="암호화폐 투자 손익 관리 대시보드">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📈</text></svg>">
+<link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="title">Crypto P&amp;L Dashboard</h1>
+      <div class="sub" id="subtitle">불러오는 중…</div>
+    </div>
+    <div class="segmented">
+      <button id="theme" type="button" title="라이트 / 다크 / 시스템 전환">테마</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <!-- 필터 한 줄: 아래 모든 카드·차트·표를 동일하게 스코프한다 -->
+  <div class="filters">
+    <span class="label">기간</span>
+    <div class="segmented" id="range">
+      <button type="button" data-value="30">최근 30일</button>
+      <button type="button" data-value="90">최근 90일</button>
+      <button type="button" data-value="all">전체</button>
+    </div>
+    <span class="spacer"></span>
+    <span class="label">통화</span>
+    <div class="segmented" id="currency">
+      <button type="button" data-value="KRW">원화</button>
+      <button type="button" data-value="USDT">USDT</button>
+    </div>
+  </div>
+
+  <main id="app"></main>
+</div>
+
+<script type="module" src="./assets/app.js"></script>
+</body>
+</html>

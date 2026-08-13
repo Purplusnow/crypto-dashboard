@@ -1,0 +1,69 @@
+{
+  "title": "Crypto P&L Dashboard",
+  "owner": "kevin",
+  "baseCurrency": "KRW",
+  "quoteCurrency": "USDT",
+  "defaultFx": 1380,
+  "fxSource": "upbit",
+  "fxMode": "latest",
+  "sample": false,
+  "accounts": [
+    {
+      "id": "BT",
+      "name": "BT",
+      "desc": "법정화폐 입출금 · USDT 환전 창구",
+      "fiat": true,
+      "yield": false,
+      "slot": 1,
+      "alias": [
+        "비썸",
+        "빗썸"
+      ]
+    },
+    {
+      "id": "OK",
+      "name": "OK",
+      "desc": "암호화폐 거래/운용",
+      "fiat": false,
+      "yield": false,
+      "slot": 2,
+      "alias": [
+        "오케",
+        "오케이"
+      ]
+    },
+    {
+      "id": "NA",
+      "name": "NA",
+      "desc": "암호화폐 거래/운용",
+      "fiat": false,
+      "yield": false,
+      "slot": 3,
+      "alias": [
+        "나노"
+      ]
+    },
+    {
+      "id": "BC",
+      "name": "BC",
+      "desc": "스테이킹 배당 운용",
+      "fiat": false,
+      "yield": true,
+      "slot": 4,
+      "alias": [
+        "비씨"
+      ]
+    },
+    {
+      "id": "BF",
+      "name": "BF",
+      "desc": "스테이킹 배당 운용",
+      "fiat": false,
+      "yield": true,
+      "slot": 5,
+      "alias": [
+        "벳퓨"
+      ]
+    }
+  ]
+}

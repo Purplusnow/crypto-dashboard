@@ -1,0 +1,32 @@
+[
+  {
+    "id": "d20260808-001",
+    "date": "2026-08-08",
+    "type": "deposit",
+    "account": "BT",
+    "currency": "KRW",
+    "amount": 150000,
+    "fx": 1406,
+    "note": "은행→BT"
+  },
+  {
+    "id": "d20260808-002",
+    "date": "2026-08-08",
+    "type": "deposit",
+    "account": "BT",
+    "currency": "KRW",
+    "amount": 150000,
+    "fx": 1406,
+    "note": "은행→BT"
+  },
+  {
+    "id": "d20260810-003",
+    "date": "2026-08-10",
+    "type": "deposit",
+    "account": "BT",
+    "currency": "KRW",
+    "amount": 150000,
+    "fx": 1413,
+    "note": "은행→BT"
+  }
+]
