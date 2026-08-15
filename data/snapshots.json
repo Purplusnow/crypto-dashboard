@@ -56,12 +56,17 @@
     "date": "2026-08-14",
     "balances": {
       "NA": {
-        "usdt": 190
+        "usdt": 0
       },
       "BF": {
-        "staked": 18
+        "staked": 0,
+        "usdt": 0
+      },
+      "BT": {
+        "krw": 150000
       }
     },
-    "fx": 1410
+    "fx": 1411,
+    "bonus": 75.6
   }
 ]

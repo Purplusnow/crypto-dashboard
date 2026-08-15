@@ -246,3 +246,7 @@ details.tableview[open] > summary::before { content: "▾"; }
 .acct-head { display: flex; align-items: center; gap: 7px; }
 .acct-head .swatch { width: 9px; height: 9px; }
 .yield-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+
+/* 히어로 숫자 옆 괄호 병기 (미래분 제외값) */
+.hero .value .ex { font-size: 0.46em; color: var(--muted); margin-left: 10px; letter-spacing: 0; }
+.tile .value .ex { font-size: 0.6em; color: var(--muted); margin-left: 6px; letter-spacing: 0; white-space: nowrap; }

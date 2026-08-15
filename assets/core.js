@@ -57,7 +57,14 @@ export function acctUsdt(p) {
  * carry-forward는 buildSeries가 필드 단위로 처리한다.
  */
 function normalizeSnapshot(snap, accountIds) {
-  const out = { date: snap.date, fx: snap.fx ?? null, note: snap.note || '', balances: {} };
+  const out = {
+    date: snap.date,
+    fx: snap.fx ?? null,
+    note: snap.note || '',
+    // 미래에 예정된 보너스 — 계좌가 아니라 별도 항목이며 직접 입력한다
+    bonus: snap.bonus === undefined || snap.bonus === null ? undefined : num(snap.bonus),
+    balances: {},
+  };
   for (const id of accountIds) {
     const raw = snap.balances?.[id];
     if (raw === undefined || raw === null) continue;
@@ -145,6 +152,7 @@ export function buildSeries(config, flows, snapshots) {
 
   // 계좌별 잔고 carry-forward
   const carried = Object.fromEntries(ids.map((id) => [id, EMPTY_ACC()]));
+  let carriedBonus = 0;
   const rows = [];
   let fi = 0;
   let cumDepKrw = 0;
@@ -177,9 +185,14 @@ export function buildSeries(config, flows, snapshots) {
     }
 
     const fx = s.fx;
-    const totalUsdt = ids.reduce((a, id) => a + acctUsdt(per[id]), 0);
+    // 보너스도 기입이 없으면 직전 값을 이월한다 (직접 유지하는 값)
+    const bonusUsdt = s.bonus ?? carriedBonus;
+    carriedBonus = bonusUsdt;
+
+    const acctsUsdt = ids.reduce((a, id) => a + acctUsdt(per[id]), 0);
     const totalKrwCash = ids.reduce((a, id) => a + per[id].krw, 0);
-    // 평가액: 원화 잔고는 fx로 USDT 환산해 합산
+    // 평가액 = 계좌 코인 + 예정 보너스 + 원화 잔고
+    const totalUsdt = acctsUsdt + bonusUsdt;
     const valUsdt = totalUsdt + totalKrwCash / fx;
     const valKrw = totalUsdt * fx + totalKrwCash;
 
@@ -201,6 +214,13 @@ export function buildSeries(config, flows, snapshots) {
       roiKrw: cumDepKrw > 0 ? (valKrw - cumDepKrw) / cumDepKrw : 0,
       stakedUsdt,
       stakedKrw: stakedUsdt * fx,
+      bonusUsdt,
+      bonusKrw: bonusUsdt * fx,
+      // 미래분(예정 보너스)을 뺀 값 — 지금 실제로 손에 있는 기준
+      valExUsdt: valUsdt - bonusUsdt,
+      valExKrw: valKrw - bonusUsdt * fx,
+      profitExUsdt: valUsdt - bonusUsdt - cumDepUsdt,
+      profitExKrw: valKrw - bonusUsdt * fx - cumDepKrw,
       avgDivUsdt,
       avgDivKrw: avgDivUsdt * fx,
       // 전일 대비
@@ -208,6 +228,11 @@ export function buildSeries(config, flows, snapshots) {
       dValKrw: prev ? valKrw - prev.valKrw : 0,
       dProfitUsdt: prev ? valUsdt - cumDepUsdt - prev.profitUsdt : 0,
       dProfitKrw: prev ? valKrw - cumDepKrw - prev.profitKrw : 0,
+      // 미래분 제외 기준의 전일 대비 (보너스가 0이면 위와 같은 값)
+      dValExUsdt: prev ? valUsdt - bonusUsdt - prev.valExUsdt : 0,
+      dValExKrw: prev ? valKrw - bonusUsdt * fx - prev.valExKrw : 0,
+      dProfitExUsdt: prev ? valUsdt - bonusUsdt - cumDepUsdt - prev.profitExUsdt : 0,
+      dProfitExKrw: prev ? valKrw - bonusUsdt * fx - cumDepKrw - prev.profitExKrw : 0,
       // 그날 순수 외부 입출금 (손익 왜곡 방지용 참고값)
       flowUsdt: 0,
       flowKrw: 0,

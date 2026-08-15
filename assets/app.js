@@ -139,6 +139,13 @@ function tile(label, value, opts = {}) {
   const v = document.createElement('div');
   v.className = 'value';
   v.textContent = value;
+  // 괄호 병기값은 한 단계 작게 — 24px로 같이 쓰면 줄바꿈으로 깨진다
+  if (opts.ex) {
+    const e = document.createElement('span');
+    e.className = 'ex';
+    e.textContent = `(${opts.ex})`;
+    v.appendChild(e);
+  }
   c.append(l, v);
 
   const foot = document.createElement('div');
@@ -226,13 +233,24 @@ function render() {
   const left = document.createElement('div');
   const hl = document.createElement('div');
   hl.className = 'label';
-  hl.textContent = '현재 총 평가액';
+  hl.textContent = '현재평가액';
   const hv = document.createElement('div');
   hv.className = 'value';
-  hv.textContent = cur.full(last[`val${K}`]);
+  // 큰 숫자는 지금 실제로 손에 있는 값(미래분 제외).
+  // 괄호는 예정 보너스까지 더한 값 — 보조로 작게 병기한다.
+  hv.textContent = cur.full(last[`bonus${K}`] > 0 ? last[`valEx${K}`] : last[`val${K}`]);
+  if (last[`bonus${K}`] > 0) {
+    const ex = document.createElement('span');
+    ex.className = 'ex';
+    ex.textContent = `(${cur.full(last[`val${K}`])})`;
+    hv.appendChild(ex);
+  }
   const ha = document.createElement('div');
   ha.className = 'alt';
-  ha.textContent = `${other} · ${last.date} 기준`;
+  ha.textContent =
+    last[`bonus${K}`] > 0
+      ? `괄호 안은 미래분 포함 · ${other} · ${last.date} 기준`
+      : `${other} · ${last.date} 기준`;
   left.append(hl, hv, ha);
 
   // 입금 기록이 없으면 원금이 0이라 "수익 = 평가액"이 되어 버린다.
@@ -243,10 +261,12 @@ function render() {
 
   const side = document.createElement('div');
   side.className = 'side';
-  const dVal = last[`dVal${K}`];
   side.append(
-    heroRow('전일 대비', signed(dVal, cur.full), dVal),
-    heroRow('총 수익', hasBasis ? signed(last[`profit${K}`], cur.full) : '—', hasBasis ? last[`profit${K}`] : 0)
+    heroRow(
+      '총 수익',
+      hasBasis ? withEx(last, 'profit', cur, K) : '—',
+      hasBasis ? last[last[`bonus${K}`] > 0 ? `profitEx${K}` : `profit${K}`] : 0
+    )
   );
   heroCard.append(left, side);
   app.appendChild(heroCard);
@@ -263,18 +283,21 @@ function render() {
           ? '입금 기록을 먼저 넣어야 수익이 나옵니다'
           : `입금 ${state.data.flows.filter((f) => f.sign > 0).length}건 − 출금 ${state.data.flows.filter((f) => f.sign < 0).length}건`,
     }),
-    tile('총 수익', hasBasis ? signed(last[`profit${K}`], cur.full) : '—', {
+    tile('총 수익', hasBasis ? signed(last[last[`bonus${K}`] > 0 ? `profitEx${K}` : `profit${K}`], cur.full) : '—', {
+      ex: hasBasis && last[`bonus${K}`] > 0 ? signed(last[`profit${K}`], cur.full) : null,
       spark: hasBasis ? rows.map((r) => r[`profit${K}`]) : null,
       sparkColor: last[`profit${K}`] >= 0 ? 'var(--up)' : 'var(--down)',
       note: hasBasis ? `${rows.length}일 구간` : '원금 없음',
+    }),
+    tile('예정 보너스', cur.full(last[`bonus${K}`]), {
+      spark: rows.map((r) => r[`bonus${K}`]),
+      sparkColor: 'var(--ref)',
+      note: '괄호 값에 포함 · 직접 입력',
     }),
     tile('총 스테이킹', cur.full(last[`staked${K}`]), {
       spark: rows.map((r) => r[`staked${K}`]),
       sparkColor: 'var(--acct-BC)',
       note: '자산에 포함',
-    }),
-    tile('일평균 배당', cur.full(last[`avgDiv${K}`]), {
-      note: '직접 입력',
     })
   );
   app.appendChild(kpi);
@@ -297,7 +320,7 @@ function render() {
     series: [
       // 이 카드의 주인공은 두 선이 아니라 그 사이의 면적이다.
       // 선은 중립 잉크로 두고, 색은 수익/손실 밴드에만 쓴다.
-      { id: 'val', label: '총 평가액', color: 'var(--text-primary)', values: rows.map((r) => r[`val${K}`]) },
+      { id: 'val', label: '총 평가액', color: 'var(--text-primary)', values: rows.map((r) => r[`valEx${K}`]) },
       { id: 'dep', label: '순 입금액(원금)', color: 'var(--ref)', values: rows.map((r) => r[`dep${K}`]), style: 'soft' },
     ],
   });
@@ -321,7 +344,7 @@ function render() {
     label: '일별 손익',
     yFmt: cur.compact,
     tipFmt: cur.full,
-    values: rows.map((r) => r[`dProfit${K}`]),
+    values: rows.map((r) => r[`dProfitEx${K}`]),
   });
 
   /* ---- 계좌별 잔고 추이 + 현재 배분 -------------------------------- */
@@ -338,14 +361,18 @@ function render() {
   s3.appendChild(g3);
   app.appendChild(s3);
 
+  // 보너스는 계좌가 아니라 아직 들어오지 않은 몫이다. 카테고리 색을 주지 않고
+  // 중립 회색으로 둬서 실제 보유와 구분한다. 평가액에는 포함되므로 스택에도 넣어야
+  // 차트 총합이 히어로 숫자와 맞는다.
   const acctSeries = accounts.map((a) => ({
     id: a.id,
     label: a.name,
     color: acctColor(a.id),
     values: rows.map((r) => acctValue(r, a.id, state.currency)),
   }));
+
   stackedArea(h4, { dates, height: 280, yFmt: cur.compact, tipFmt: cur.full, series: acctSeries });
-  legend(lg4, accounts.map((a) => ({ label: a.name, color: acctColor(a.id) })));
+  legend(lg4, acctSeries.map((x) => ({ label: x.label, color: x.color })));
   allocationBar(h5, {
     fmt: cur.full,
     parts: accounts.map((a) => ({
@@ -423,6 +450,12 @@ function heroRow(k, v, dir) {
 function dirClass(v) {
   const s = signOf(v);
   return s > 0 ? 'up' : s < 0 ? 'down' : 'flat';
+}
+
+/** "미래분 제외값 (포함값)" — 보너스가 0이면 한 값만 */
+function withEx(row, key, cur, K) {
+  if (!(row[`bonus${K}`] > 0)) return signed(row[`${key}${K}`], cur.full);
+  return `${signed(row[`${key}Ex${K}`], cur.full)} (${signed(row[`${key}${K}`], cur.full)})`;
 }
 
 function signed(v, fmt) {
@@ -566,17 +599,17 @@ function buildTable(rows, accounts, cur, K) {
     const cells = [
       r.date,
       ...accounts.map((a) => cur.compact(acctValue(r, a.id, state.currency))),
-      cur.full(r[`val${K}`]),
+      cur.full(r[`valEx${K}`]),
       cur.compact(r[`dep${K}`]),
-      signed(r[`profit${K}`], cur.full),
-      signed(r[`dProfit${K}`], cur.compact),
+      signed(r[`profitEx${K}`], cur.full),
+      signed(r[`dProfitEx${K}`], cur.compact),
       r[`flow${K}`] ? signed(r[`flow${K}`], cur.compact) : '—',
     ];
     cells.forEach((v, i) => {
       const td = document.createElement('td');
       td.textContent = v;
       if (heads[i] === '누적 수익' || heads[i] === '일별 손익') {
-        const raw = heads[i] === '누적 수익' ? r[`profit${K}`] : r[`dProfit${K}`];
+        const raw = heads[i] === '누적 수익' ? r[`profitEx${K}`] : r[`dProfitEx${K}`];
         td.className = dirClass(raw);
       }
       tr.appendChild(td);

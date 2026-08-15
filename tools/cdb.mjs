@@ -240,6 +240,10 @@ ${C.b('스테이킹 (BC · BF)')}
   div   [--date ...] --bc 0.42 --bf 0.19   일평균 배당 (USDT, 직접 유지하는 값)
       둘 다 다시 입력하기 전까지 직전 값이 그대로 이월된다.
 
+${C.b('예정 보너스')}
+  bonus <USDT> [--date ...]   미래에 예정된 보너스. 계좌가 아닌 별도 항목이며
+                              평가액(잔고)에 포함된다. 다시 입력할 때까지 이월된다.
+
 ${C.b('환율')}  ${C.dim('— 입력 시 자동으로 실시간 시세를 가져온다')}
   fx                       지금 시세를 가져와 오늘자로 기록
   fx --date 2026-08-01     그날 종가를 가져와 기록 (Upbit 일봉)
@@ -399,6 +403,20 @@ function balanceField(flags, field, label) {
   summary();
 }
 
+/** 미래에 예정된 보너스 — 계좌가 아닌 별도 항목. 직접 입력하고 이월된다. */
+commands.bonus = ({ flags, pos }) => {
+  const { config, snapshots } = ctx();
+  const v = Number(String(pos[0] ?? '').replace(/[_,\s]/g, ''));
+  if (!Number.isFinite(v) || v < 0) die('보너스를 지정하세요 (USDT). 예: cdb bonus 75.6');
+  const date = dateFlag(flags);
+  const s = upsertSnapshot(snapshots, date);
+  s.bonus = v;
+  writeJSON(F.snapshots, snapshots);
+  clearSample(config);
+  console.log(`${C.green('✔')} ${date}  예정 보너스 ${C.b(fmtUsdt(v))}  ${C.dim('잔고에 포함됨')}`);
+  summary();
+};
+
 commands.fx = async ({ flags, pos }) => {
   const { config, snapshots } = ctx();
   const date = dateFlag(flags);
@@ -447,18 +465,26 @@ commands.show = ({ pos }) => {
   }
   const line = '  ' + '─'.repeat(52);
   console.log(line);
-  console.log(`  ${C.b('총 평가액')}  ${C.b(fmtKrw(r.valKrw))}   ${C.dim(fmtUsdt(r.valUsdt))}`);
+  // 본값 = 미래분 제외, 괄호 = 포함
+  const ex = (mainV, parenV, f) => (r.bonusUsdt ? `${f(mainV)} ${C.dim(`(${f(parenV)})`)}` : f(mainV));
+  console.log(`  ${C.b('총 평가액')}  ${C.b(ex(r.valExKrw, r.valKrw, fmtKrw))}   ${C.dim(fmtUsdt(r.valExUsdt))}`);
   // 출금이 입금을 넘어서면 라벨을 뒤집는다 ("순 입금액 -30만"은 읽기 어렵다)
   const depLabel = r.depKrw < 0 ? '순 출금액' : '순 입금액';
   console.log(`  ${depLabel}  ${fmtKrw(Math.abs(r.depKrw))}   ${C.dim(fmtUsdt(Math.abs(r.depUsdt)))}`);
   // 입출금 기록이 아예 없으면 "수익 = 평가액"이 되어 버린다. 그건 수익이 아니다.
   // 반대로 순 입금액이 0이거나 음수여도(전액 회수) 수익은 계산할 수 있다.
   if (flows.some((f) => f.date <= r.date)) {
-    console.log(`  ${'총 수익  '}  ${pn(r.profitKrw, fmtKrw)}   ${C.dim(pn(r.profitUsdt, fmtUsdt))}`);
+    const pf = r.bonusUsdt
+      ? `${pn(r.profitExKrw, fmtKrw)} ${C.dim(`(${pn(r.profitKrw, fmtKrw)})`)}`
+      : pn(r.profitKrw, fmtKrw);
+    console.log(`  ${'총 수익  '}  ${pf}   ${C.dim(pn(r.bonusUsdt ? r.profitExUsdt : r.profitUsdt, fmtUsdt))}`);
   } else {
     console.log(`  ${'총 수익  '}  ${C.dim('—')}   ${C.dim('입금 기록이 없어 계산할 수 없습니다')}`);
   }
   console.log(`  ${'전일 대비'}  ${pn(r.dProfitKrw, fmtKrw)}`);
+  if (r.bonusUsdt) {
+    console.log(`  ${'예정보너스'} ${fmtKrw(r.bonusKrw)}   ${C.dim(fmtUsdt(r.bonusUsdt) + ' · 괄호 안은 이걸 더한 값')}`);
+  }
   if (r.stakedUsdt || r.avgDivUsdt) {
     console.log(`  ${'스테이킹 '}  ${fmtKrw(r.stakedKrw)}   ${C.dim(fmtUsdt(r.stakedUsdt) + ' · 자산에 포함')}`);
     console.log(`  ${'일평균배당'} ${fmtKrw(r.avgDivKrw)}   ${C.dim(fmtUsdt(r.avgDivUsdt) + ' · 직접 입력')}`);
