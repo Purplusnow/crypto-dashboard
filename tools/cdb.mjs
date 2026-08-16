@@ -240,9 +240,11 @@ ${C.b('스테이킹 (BC · BF)')}
   div   [--date ...] --bc 0.42 --bf 0.19   일평균 배당 (USDT, 직접 유지하는 값)
       둘 다 다시 입력하기 전까지 직전 값이 그대로 이월된다.
 
-${C.b('예정 보너스')}
-  bonus <USDT> [--date ...]   미래에 예정된 보너스. 계좌가 아닌 별도 항목이며
-                              평가액(잔고)에 포함된다. 다시 입력할 때까지 이월된다.
+${C.b('미래분 보너스')}  ${C.dim('— 큰 숫자에는 안 들어가고 괄호 값에만 더해진다')}
+  bonus <USDT> [--date ...]   예정된 보너스 (확정분)
+  seed  <USDT> [--date ...]   예정될 보너스의 시드 — 여기에 요율을 곱한 값이 잡힌다
+                              요율은 data/config.json 의 futureBonusRate (기본 0.17%)
+                              둘 다 다시 입력할 때까지 이월된다.
 
 ${C.b('환율')}  ${C.dim('— 입력 시 자동으로 실시간 시세를 가져온다')}
   fx                       지금 시세를 가져와 오늘자로 기록
@@ -259,7 +261,7 @@ ${C.b('조회 · 관리')}
   rm snap <YYYY-MM-DD>     스냅샷 삭제
   rm flow <id>             입출금 내역 삭제
   check                    데이터 정합성 검사
-  seed                     샘플 데이터 생성
+  demo [--force]           데모 데이터 생성 (실기록이 있으면 --force 필요)
   reset                    모든 기록 삭제 (백업 후)
   serve [--port 8080]      로컬에서 대시보드 미리보기
 
@@ -403,7 +405,25 @@ function balanceField(flags, field, label) {
   summary();
 }
 
-/** 미래에 예정된 보너스 — 계좌가 아닌 별도 항목. 직접 입력하고 이월된다. */
+/** 예정될 보너스의 시드. 표시값은 시드 × config.futureBonusRate 로 파생한다. */
+commands.seed = ({ flags, pos }) => {
+  const { config, snapshots } = ctx();
+  const v = Number(String(pos[0] ?? '').replace(/[_,\s]/g, ''));
+  if (!Number.isFinite(v) || v < 0) die('시드를 지정하세요 (USDT). 예: cdb seed 4515');
+  const date = dateFlag(flags);
+  const s = upsertSnapshot(snapshots, date);
+  s.bonusSeed = v;
+  writeJSON(F.snapshots, snapshots);
+  clearSample(config);
+  const rate = Number(config.futureBonusRate ?? 0.0017);
+  console.log(
+    `${C.green('✔')} ${date}  예정될 보너스 시드 ${C.b(fmtUsdt(v))}` +
+    `  ${C.dim(`× ${(rate * 100).toFixed(2)}% = ${fmtUsdt(v * rate, 4)}`)}`
+  );
+  summary();
+};
+
+/** 예정된 보너스 — 계좌가 아닌 별도 항목. 직접 입력하고 이월된다. */
 commands.bonus = ({ flags, pos }) => {
   const { config, snapshots } = ctx();
   const v = Number(String(pos[0] ?? '').replace(/[_,\s]/g, ''));
@@ -413,7 +433,7 @@ commands.bonus = ({ flags, pos }) => {
   s.bonus = v;
   writeJSON(F.snapshots, snapshots);
   clearSample(config);
-  console.log(`${C.green('✔')} ${date}  예정 보너스 ${C.b(fmtUsdt(v))}  ${C.dim('잔고에 포함됨')}`);
+  console.log(`${C.green('✔')} ${date}  예정된 보너스 ${C.b(fmtUsdt(v))}  ${C.dim('괄호 값에 포함')}`);
   summary();
 };
 
@@ -483,7 +503,16 @@ commands.show = ({ pos }) => {
   }
   console.log(`  ${'전일 대비'}  ${pn(r.dProfitKrw, fmtKrw)}`);
   if (r.bonusUsdt) {
-    console.log(`  ${'예정보너스'} ${fmtKrw(r.bonusKrw)}   ${C.dim(fmtUsdt(r.bonusUsdt) + ' · 괄호 안은 이걸 더한 값')}`);
+    console.log(`  ${'예정된보너스'} ${fmtKrw(r.bonusKrw)}   ${C.dim(fmtUsdt(r.bonusUsdt))}`);
+  }
+  if (r.bonus2Usdt) {
+    console.log(
+      `  ${'예정될보너스'} ${fmtKrw(r.bonus2Krw)}   ` +
+      C.dim(`${fmtUsdt(r.bonus2Usdt, 4)} · 시드 ${fmtUsdt(r.seedUsdt, 0)}`)
+    );
+  }
+  if (r.futureUsdt) {
+    console.log(C.dim(`  ${'└ 합계    '} ${fmtKrw(r.futureKrw)}   ${fmtUsdt(r.futureUsdt)} · 괄호 안은 이걸 더한 값`));
   }
   if (r.stakedUsdt || r.avgDivUsdt) {
     console.log(`  ${'스테이킹 '}  ${fmtKrw(r.stakedKrw)}   ${C.dim(fmtUsdt(r.stakedUsdt) + ' · 자산에 포함')}`);
@@ -617,8 +646,15 @@ commands.reset = ({ flags }) => {
   console.log(`${C.green('✔')} 데이터를 비웠습니다. ${C.dim(`백업: data/.backup-*-${stamp}.json`)}`);
 };
 
-commands.seed = () => {
-  const { config, ids } = ctx();
+commands.demo = ({ flags }) => {
+  const { config, ids, snapshots: existing, flows: existingFlows } = ctx();
+  // 실데이터를 통째로 날리는 명령이다. 샘플이 아닌 기록이 있으면 막는다.
+  if (!config.sample && (existing.length || existingFlows.length) && !flags.force) {
+    die(
+      `실제 기록이 있습니다 (스냅샷 ${existing.length}건 · 입출금 ${existingFlows.length}건). ` +
+      `데모 데이터로 덮어쓰려면 --force 를 붙이세요.`
+    );
+  }
   // 결정적 난수 (재실행해도 같은 샘플)
   let s = 20260813;
   const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
@@ -663,7 +699,7 @@ commands.seed = () => {
   writeJSON(F.snapshots, snapshots);
   config.sample = true;
   writeJSON(F.config, config);
-  console.log(`${C.green('✔')} 샘플 ${days}일치 생성 ${C.dim('· node tools/cdb.mjs reset 으로 지울 수 있습니다')}`);
+  console.log(`${C.green('✔')} 데모 ${days}일치 생성 ${C.dim('· node tools/cdb.mjs reset 으로 지울 수 있습니다')}`);
   summary();
   void ids;
 };

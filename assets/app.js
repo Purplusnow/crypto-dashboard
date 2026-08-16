@@ -289,15 +289,18 @@ function render() {
       sparkColor: last[`profit${K}`] >= 0 ? 'var(--up)' : 'var(--down)',
       note: hasBasis ? `${rows.length}일 구간` : '원금 없음',
     }),
-    tile('예정 보너스', cur.full(last[`bonus${K}`]), {
+    tile('예정된 보너스', cur.full(last[`bonus${K}`]), {
       spark: rows.map((r) => r[`bonus${K}`]),
       sparkColor: 'var(--ref)',
       note: '괄호 값에 포함 · 직접 입력',
     }),
-    tile('총 스테이킹', cur.full(last[`staked${K}`]), {
-      spark: rows.map((r) => r[`staked${K}`]),
-      sparkColor: 'var(--acct-BC)',
-      note: '자산에 포함',
+    tile('예정될 보너스', cur.full(last[`bonus2${K}`]), {
+      spark: rows.map((r) => r[`bonus2${K}`]),
+      sparkColor: 'var(--ref)',
+      note:
+        last.seedUsdt > 0
+          ? `시드 ${fmtNum(last.seedUsdt, 0)} × ${((state.config.futureBonusRate ?? 0.0017) * 100).toFixed(2)}%`
+          : '시드 미입력',
     })
   );
   app.appendChild(kpi);

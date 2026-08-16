@@ -138,7 +138,9 @@ node tools/cdb.mjs div   --벳퓨 0.05    # BF 일평균 배당 (USDT)
 | `rm snap <날짜>` · `rm flow <id>` | 삭제 |
 | `check` | 정합성 검사 (중복·오타·미반영 입금) |
 | `serve [--port 8080]` | 로컬 미리보기 |
-| `seed` / `reset` | 샘플 생성 / 전체 삭제(백업 후) |
+| `seed <USDT>` | 예정될 보너스 시드 |
+| `bonus <USDT>` | 예정된 보너스 |
+| `demo` / `reset` | 데모 데이터 생성 / 전체 삭제(백업 후) |
 
 공통 플래그: `--date 2026-08-13`, `--date y`(어제), `--date -3`(3일 전), `--note "..."`
 
