@@ -246,6 +246,10 @@ ${C.b('미래분 보너스')}  ${C.dim('— 큰 숫자에는 안 들어가고 �
                               요율은 data/config.json 의 futureBonusRate (기본 0.17%)
                               둘 다 다시 입력할 때까지 이월된다.
 
+${C.b('진행률')}
+  progress <0~100> [--date ...]   퍼센트를 직접 입력한다. 금액은
+                                  data/config.json 의 progressBase 에 곱해 나온다.
+
 ${C.b('환율')}  ${C.dim('— 입력 시 자동으로 실시간 시세를 가져온다')}
   fx                       지금 시세를 가져와 오늘자로 기록
   fx --date 2026-08-01     그날 종가를 가져와 기록 (Upbit 일봉)
@@ -403,6 +407,29 @@ function balanceField(flags, field, label) {
   clearSample(config);
   console.log(`${C.green('✔')} ${date}  ${label} 기록  ${C.dim(touched.join(' · '))}`);
   summary();
+}
+
+/** 진행률(%). 금액은 config.progressBase 에 곱해 파생한다. */
+commands.progress = ({ flags, pos }) => {
+  const { config, snapshots } = ctx();
+  const v = Number(String(pos[0] ?? '').replace(/[%\s]/g, ''));
+  if (!Number.isFinite(v) || v < 0 || v > 100) die('진행률을 0~100 으로 지정하세요. 예: cdb progress 19');
+  const date = dateFlag(flags);
+  const s = upsertSnapshot(snapshots, date);
+  s.progress = v;
+  writeJSON(F.snapshots, snapshots);
+  clearSample(config);
+  const base = num0(config.progressBase);
+  console.log(
+    `${C.green('✔')} ${date}  진행률 ${C.b(v + '%')}` +
+    `  ${C.dim(`${base} USDT × ${v}% = ${fmtUsdt((base * v) / 100)}`)}`
+  );
+  summary();
+};
+
+function num0(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
 }
 
 /** 예정될 보너스의 시드. 표시값은 시드 × config.futureBonusRate 로 파생한다. */

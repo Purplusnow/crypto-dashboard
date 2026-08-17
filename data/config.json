@@ -66,5 +66,7 @@
       ]
     }
   ],
-  "futureBonusRate": 0.0017
+  "futureBonusRate": 0.0017,
+  "progressBase": 768,
+  "progressLabel": "진행률"
 }

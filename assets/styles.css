@@ -28,6 +28,8 @@
   --down-ink: #1c5cab;
 
   --ref: #898781; /* 원금선 등 기준 계열 */
+  --meter-fill: #2a78d6;   /* 미터: 같은 파랑 계열의 두 단계 */
+  --meter-track: #cde2fb;
 
   --r: 10px;
   --font: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
@@ -58,6 +60,8 @@
     --down: #3987e5;
     --up-ink: #e66767;
     --down-ink: #6da7ec;
+    --meter-fill: #3987e5;
+    --meter-track: #184f95;
   }
 }
 
@@ -83,6 +87,8 @@
   --down: #3987e5;
   --up-ink: #e66767;
   --down-ink: #6da7ec;
+  --meter-fill: #3987e5;
+  --meter-track: #184f95;
 }
 
 /* ------------------------------------------------------------------ 기본 */
@@ -250,3 +256,11 @@ details.tableview[open] > summary::before { content: "▾"; }
 /* 히어로 숫자 옆 괄호 병기 (미래분 제외값) */
 .hero .value .ex { font-size: 0.46em; color: var(--muted); margin-left: 10px; letter-spacing: 0; }
 .tile .value .ex { font-size: 0.6em; color: var(--muted); margin-left: 6px; letter-spacing: 0; white-space: nowrap; }
+
+/* ------------------------------------------------------------- 진행률 미터 */
+.meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 6px 0 10px; }
+.meter-amt { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.meter-pct { font-size: 15px; font-weight: 600; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.meter-track { height: 14px; border-radius: 7px; background: var(--meter-track); overflow: hidden; }
+.meter-fill { height: 100%; border-radius: 7px; background: var(--meter-fill); }
+.meter-foot { margin-top: 8px; color: var(--muted); font-size: 12px; }

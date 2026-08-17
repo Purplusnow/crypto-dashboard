@@ -305,6 +305,43 @@ function render() {
   );
   app.appendChild(kpi);
 
+  /* ---- 진행률 ------------------------------------------------------ */
+  // 단일 비율을 한계 대비로 보여주는 것이라 차트가 아니라 미터가 맞다.
+  // 채움/트랙은 같은 계열의 두 단계라 상태가 막대 전체에서 읽힌다.
+  if (last.progressPct > 0) {
+    const pc = card(state.config.progressLabel || '진행률');
+    const head = document.createElement('div');
+    head.className = 'meter-head';
+    const amt = document.createElement('span');
+    amt.className = 'meter-amt';
+    amt.textContent = cur.full(last[`progress${K}`]);
+    const pct = document.createElement('span');
+    pct.className = 'meter-pct';
+    pct.textContent = `${last.progressPct}%`;
+    head.append(amt, pct);
+
+    const track = document.createElement('div');
+    track.className = 'meter-track';
+    track.setAttribute('role', 'progressbar');
+    track.setAttribute('aria-valuenow', String(last.progressPct));
+    track.setAttribute('aria-valuemin', '0');
+    track.setAttribute('aria-valuemax', '100');
+    track.setAttribute('aria-label', `${state.config.progressLabel || '진행률'} ${last.progressPct}%`);
+    const fill = document.createElement('div');
+    fill.className = 'meter-fill';
+    fill.style.width = `${Math.min(100, Math.max(0, last.progressPct))}%`;
+    track.appendChild(fill);
+
+    const foot = document.createElement('div');
+    foot.className = 'meter-foot';
+    foot.textContent = `${fmtNum(state.config.progressBase ?? 0, 0)} USDT 기준 · ${fmtUsdt(last.progressUsdt)}`;
+
+    pc.append(head, track, foot);
+    const ps = section();
+    ps.appendChild(pc);
+    app.appendChild(ps);
+  }
+
   /* ---- 평가액 vs 원금 ------------------------------------------ */
   const s1 = section();
   const c1 = card('평가액과 원금');

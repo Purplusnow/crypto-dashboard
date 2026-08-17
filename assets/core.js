@@ -67,6 +67,9 @@ function normalizeSnapshot(snap, accountIds) {
     // 표시값은 config.futureBonusRate 를 곱해 파생한다.
     bonusSeed:
       snap.bonusSeed === undefined || snap.bonusSeed === null ? undefined : num(snap.bonusSeed),
+    // 진행률(%) — 직접 입력하고 이월된다. 금액은 config.progressBase 에 곱해 파생.
+    progress:
+      snap.progress === undefined || snap.progress === null ? undefined : num(snap.progress),
     balances: {},
   };
   for (const id of accountIds) {
@@ -102,6 +105,7 @@ export function buildSeries(config, flows, snapshots) {
   const futureRate = Number.isFinite(Number(config.futureBonusRate))
     ? Number(config.futureBonusRate)
     : 0.0017;
+  const progressBase = num(config.progressBase) || 0;
 
   const snaps = (snapshots || [])
     .filter((s) => isDate(s.date))
@@ -161,6 +165,7 @@ export function buildSeries(config, flows, snapshots) {
   const carried = Object.fromEntries(ids.map((id) => [id, EMPTY_ACC()]));
   let carriedBonus = 0;
   let carriedSeed = 0;
+  let carriedProgress = 0;
   const rows = [];
   let fi = 0;
   let cumDepKrw = 0;
@@ -199,6 +204,9 @@ export function buildSeries(config, flows, snapshots) {
     const seedUsdt = s.bonusSeed ?? carriedSeed;
     carriedSeed = seedUsdt;
     // 예정될 보너스 = 시드 × 요율 (더 먼 미래에 들어올 몫)
+    const progressPct = s.progress ?? carriedProgress;
+    carriedProgress = progressPct;
+
     const bonus2Usdt = seedUsdt * futureRate;
     const futureUsdt = bonusUsdt + bonus2Usdt;
 
@@ -234,6 +242,9 @@ export function buildSeries(config, flows, snapshots) {
       bonus2Krw: bonus2Usdt * fx,
       futureUsdt,
       futureKrw: futureUsdt * fx,
+      progressPct,
+      progressUsdt: progressBase * (progressPct / 100),
+      progressKrw: progressBase * (progressPct / 100) * fx,
       // 미래분(예정 + 예정될)을 뺀 값 — 지금 실제로 손에 있는 기준
       valExUsdt: valUsdt - futureUsdt,
       valExKrw: valKrw - futureUsdt * fx,
