@@ -96,13 +96,13 @@
     "date": "2026-08-17",
     "balances": {
       "NA": {
-        "usdt": 152
+        "usdt": 170
       },
       "BF": {
         "staked": 0.33
       }
     },
-    "fx": 1414,
+    "fx": 1415,
     "progress": 19,
     "bonusSeed": 14965
   }
