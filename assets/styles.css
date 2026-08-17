@@ -257,10 +257,15 @@ details.tableview[open] > summary::before { content: "▾"; }
 .hero .value .ex { font-size: 0.46em; color: var(--muted); margin-left: 10px; letter-spacing: 0; }
 .tile .value .ex { font-size: 0.6em; color: var(--muted); margin-left: 6px; letter-spacing: 0; white-space: nowrap; }
 
-/* ------------------------------------------------------------- 진행률 미터 */
-.meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 6px 0 10px; }
-.meter-amt { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
-.meter-pct { font-size: 15px; font-weight: 600; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
-.meter-track { height: 14px; border-radius: 7px; background: var(--meter-track); overflow: hidden; }
-.meter-fill { height: 100%; border-radius: 7px; background: var(--meter-fill); }
-.meter-foot { margin-top: 8px; color: var(--muted); font-size: 12px; }
+/* --------------------------------------------------------- 레벨업 진행율 */
+/* 한 줄 미터 — 카드 헤더 없이 가로로 붙여 높이를 아낀다 */
+.card.meter { display: flex; align-items: center; gap: 14px; padding: 10px 16px; }
+.meter-label { color: var(--text-secondary); font-size: 12.5px; white-space: nowrap; }
+.meter-amt { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
+.meter-track { flex: 1; min-width: 120px; height: 8px; border-radius: 4px; background: var(--meter-track); overflow: hidden; }
+.meter-fill { height: 100%; border-radius: 4px; background: var(--meter-fill); }
+.meter-pct { font-size: 13px; font-weight: 600; color: var(--text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 600px) {
+  .card.meter { flex-wrap: wrap; gap: 8px 12px; }
+  .meter-track { flex-basis: 100%; order: 3; }
+}

@@ -305,20 +305,22 @@ function render() {
   );
   app.appendChild(kpi);
 
-  /* ---- 진행률 ------------------------------------------------------ */
-  // 단일 비율을 한계 대비로 보여주는 것이라 차트가 아니라 미터가 맞다.
-  // 채움/트랙은 같은 계열의 두 단계라 상태가 막대 전체에서 읽힌다.
+  /* ---- 레벨업 진행율 ----------------------------------------------- */
+  // 한 줄짜리 미터. 값 하나라 카드 헤더 없이 라벨·금액·막대·퍼센트를 가로로 붙여
+  // 높이를 최소로 가져간다. 채움/트랙은 같은 파랑 계열 두 단계.
   if (last.progressPct > 0) {
-    const pc = card(state.config.progressLabel || '진행률');
-    const head = document.createElement('div');
-    head.className = 'meter-head';
+    const label = state.config.progressLabel || '진행율';
+    const pc = card();
+    pc.classList.add('meter');
+    pc.title = `${fmtNum(state.config.progressBase ?? 0, 0)} USDT 기준 · ${fmtUsdt(last.progressUsdt)}`;
+
+    const lb = document.createElement('span');
+    lb.className = 'meter-label';
+    lb.textContent = label;
+
     const amt = document.createElement('span');
     amt.className = 'meter-amt';
     amt.textContent = cur.full(last[`progress${K}`]);
-    const pct = document.createElement('span');
-    pct.className = 'meter-pct';
-    pct.textContent = `${last.progressPct}%`;
-    head.append(amt, pct);
 
     const track = document.createElement('div');
     track.className = 'meter-track';
@@ -326,17 +328,17 @@ function render() {
     track.setAttribute('aria-valuenow', String(last.progressPct));
     track.setAttribute('aria-valuemin', '0');
     track.setAttribute('aria-valuemax', '100');
-    track.setAttribute('aria-label', `${state.config.progressLabel || '진행률'} ${last.progressPct}%`);
+    track.setAttribute('aria-label', `${label} ${last.progressPct}%`);
     const fill = document.createElement('div');
     fill.className = 'meter-fill';
     fill.style.width = `${Math.min(100, Math.max(0, last.progressPct))}%`;
     track.appendChild(fill);
 
-    const foot = document.createElement('div');
-    foot.className = 'meter-foot';
-    foot.textContent = `${fmtNum(state.config.progressBase ?? 0, 0)} USDT 기준 · ${fmtUsdt(last.progressUsdt)}`;
+    const pct = document.createElement('span');
+    pct.className = 'meter-pct';
+    pct.textContent = `${last.progressPct}%`;
 
-    pc.append(head, track, foot);
+    pc.append(lb, amt, track, pct);
     const ps = section();
     ps.appendChild(pc);
     app.appendChild(ps);
