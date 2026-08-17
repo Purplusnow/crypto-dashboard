@@ -109,5 +109,14 @@
     "progress": 22,
     "bonusSeed": 29032,
     "bonus": 43.14
+  },
+  {
+    "date": "2026-08-18",
+    "balances": {
+      "NA": {
+        "usdt": 0.28
+      }
+    },
+    "fx": 1410
   }
 ]
