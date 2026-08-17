@@ -600,7 +600,8 @@ function buildFlows(allFlows, rows, cur, K) {
 function buildTable(rows, accounts, cur, K) {
   const d = document.createElement('details');
   d.className = 'tableview';
-  d.open = params.get('table') === '1';
+  // 기본은 펼침. ?table=0 으로 접은 상태를 북마크할 수 있다.
+  d.open = params.get('table') !== '0';
   const sm = document.createElement('summary');
   sm.textContent = `표로 보기 (${rows.length}일)`;
   d.appendChild(sm);
