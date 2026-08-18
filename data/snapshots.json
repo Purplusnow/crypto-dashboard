@@ -126,7 +126,12 @@
   },
   {
     "date": "2026-08-19",
-    "balances": {},
-    "progress": 23
+    "balances": {
+      "NA": {
+        "usdt": 54
+      }
+    },
+    "progress": 23,
+    "fx": 1405
   }
 ]
