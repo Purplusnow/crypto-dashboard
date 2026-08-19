@@ -129,6 +129,9 @@
     "balances": {
       "NA": {
         "usdt": 0
+      },
+      "BT": {
+        "krw": 150000
       }
     },
     "progress": 24,
