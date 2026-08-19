@@ -128,11 +128,11 @@
     "date": "2026-08-19",
     "balances": {
       "NA": {
-        "usdt": 26
+        "usdt": 18
       }
     },
     "progress": 23,
-    "fx": 1402,
+    "fx": 1398,
     "bonusSeed": 36565
   }
 ]
