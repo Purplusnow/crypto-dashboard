@@ -157,6 +157,9 @@
     "balances": {
       "NA": {
         "usdt": 16
+      },
+      "BT": {
+        "krw": 130000
       }
     },
     "bonusSeed": 41031,
