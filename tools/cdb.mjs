@@ -513,7 +513,7 @@ commands.show = ({ pos }) => {
   const line = '  ' + '─'.repeat(52);
   console.log(line);
   // 본값 = 미래분 제외, 괄호 = 포함
-  const ex = (mainV, parenV, f) => (r.bonusUsdt ? `${f(mainV)} ${C.dim(`(${f(parenV)})`)}` : f(mainV));
+  const ex = (mainV, parenV, f) => (r.futureUsdt ? `${f(mainV)} ${C.dim(`(${f(parenV)})`)}` : f(mainV));
   console.log(`  ${C.b('총 평가액')}  ${C.b(ex(r.valExKrw, r.valKrw, fmtKrw))}   ${C.dim(fmtUsdt(r.valExUsdt))}`);
   // 출금이 입금을 넘어서면 라벨을 뒤집는다 ("순 입금액 -30만"은 읽기 어렵다)
   const depLabel = r.depKrw < 0 ? '순 출금액' : '순 입금액';
@@ -521,10 +521,10 @@ commands.show = ({ pos }) => {
   // 입출금 기록이 아예 없으면 "수익 = 평가액"이 되어 버린다. 그건 수익이 아니다.
   // 반대로 순 입금액이 0이거나 음수여도(전액 회수) 수익은 계산할 수 있다.
   if (flows.some((f) => f.date <= r.date)) {
-    const pf = r.bonusUsdt
+    const pf = r.futureUsdt
       ? `${pn(r.profitExKrw, fmtKrw)} ${C.dim(`(${pn(r.profitKrw, fmtKrw)})`)}`
       : pn(r.profitKrw, fmtKrw);
-    console.log(`  ${'총 수익  '}  ${pf}   ${C.dim(pn(r.bonusUsdt ? r.profitExUsdt : r.profitUsdt, fmtUsdt))}`);
+    console.log(`  ${'총 수익  '}  ${pf}   ${C.dim(pn(r.futureUsdt ? r.profitExUsdt : r.profitUsdt, fmtUsdt))}`);
   } else {
     console.log(`  ${'총 수익  '}  ${C.dim('—')}   ${C.dim('입금 기록이 없어 계산할 수 없습니다')}`);
   }

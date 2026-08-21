@@ -238,8 +238,8 @@ function render() {
   hv.className = 'value';
   // 큰 숫자는 지금 실제로 손에 있는 값(미래분 제외).
   // 괄호는 예정 보너스까지 더한 값 — 보조로 작게 병기한다.
-  hv.textContent = cur.full(last[`bonus${K}`] > 0 ? last[`valEx${K}`] : last[`val${K}`]);
-  if (last[`bonus${K}`] > 0) {
+  hv.textContent = cur.full(last[`future${K}`] > 0 ? last[`valEx${K}`] : last[`val${K}`]);
+  if (last[`future${K}`] > 0) {
     const ex = document.createElement('span');
     ex.className = 'ex';
     ex.textContent = `(${cur.full(last[`val${K}`])})`;
@@ -248,7 +248,7 @@ function render() {
   const ha = document.createElement('div');
   ha.className = 'alt';
   ha.textContent =
-    last[`bonus${K}`] > 0
+    last[`future${K}`] > 0
       ? `괄호 안은 미래분 포함 · ${other} · ${last.date} 기준`
       : `${other} · ${last.date} 기준`;
   left.append(hl, hv, ha);
@@ -265,7 +265,7 @@ function render() {
     heroRow(
       '총 수익',
       hasBasis ? withEx(last, 'profit', cur, K) : '—',
-      hasBasis ? last[last[`bonus${K}`] > 0 ? `profitEx${K}` : `profit${K}`] : 0
+      hasBasis ? last[last[`future${K}`] > 0 ? `profitEx${K}` : `profit${K}`] : 0
     )
   );
   heroCard.append(left, side);
@@ -283,8 +283,8 @@ function render() {
           ? '입금 기록을 먼저 넣어야 수익이 나옵니다'
           : `입금 ${state.data.flows.filter((f) => f.sign > 0).length}건 − 출금 ${state.data.flows.filter((f) => f.sign < 0).length}건`,
     }),
-    tile('총 수익', hasBasis ? signed(last[last[`bonus${K}`] > 0 ? `profitEx${K}` : `profit${K}`], cur.full) : '—', {
-      ex: hasBasis && last[`bonus${K}`] > 0 ? signed(last[`profit${K}`], cur.full) : null,
+    tile('총 수익', hasBasis ? signed(last[last[`future${K}`] > 0 ? `profitEx${K}` : `profit${K}`], cur.full) : '—', {
+      ex: hasBasis && last[`future${K}`] > 0 ? signed(last[`profit${K}`], cur.full) : null,
       spark: hasBasis ? rows.map((r) => r[`profit${K}`]) : null,
       sparkColor: last[`profit${K}`] >= 0 ? 'var(--up)' : 'var(--down)',
       note: hasBasis ? `${rows.length}일 구간` : '원금 없음',
@@ -496,7 +496,7 @@ function dirClass(v) {
 
 /** "미래분 제외값 (포함값)" — 보너스가 0이면 한 값만 */
 function withEx(row, key, cur, K) {
-  if (!(row[`bonus${K}`] > 0)) return signed(row[`${key}${K}`], cur.full);
+  if (!(row[`future${K}`] > 0)) return signed(row[`${key}${K}`], cur.full);
   return `${signed(row[`${key}Ex${K}`], cur.full)} (${signed(row[`${key}${K}`], cur.full)})`;
 }
 
