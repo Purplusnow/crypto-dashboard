@@ -194,14 +194,14 @@
     "date": "2026-08-24",
     "balances": {
       "NA": {
-        "usdt": 30
+        "usdt": 0
       },
       "BT": {
         "krw": 0
       }
     },
     "bonus": 47.2729,
-    "fx": 1375,
+    "fx": 1377,
     "bonusSeed": 11090,
     "progress": 26
   }
