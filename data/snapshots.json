@@ -208,6 +208,7 @@
   {
     "date": "2026-08-25",
     "balances": {},
-    "bonus": 35
+    "bonus": 35,
+    "bonusSeed": 12119
   }
 ]
