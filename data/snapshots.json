@@ -207,8 +207,19 @@
   },
   {
     "date": "2026-08-25",
-    "balances": {},
+    "balances": {
+      "BT": {
+        "krw": 0
+      },
+      "OK": {
+        "usdt": 73
+      },
+      "NA": {
+        "usdt": 70
+      }
+    },
     "bonus": 35,
-    "bonusSeed": 12119
+    "bonusSeed": 12119,
+    "fx": 1382
   }
 ]
