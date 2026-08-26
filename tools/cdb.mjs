@@ -549,7 +549,7 @@ commands.show = ({ pos }) => {
   console.log(`  ${'전일 대비'}  ${pn(r.dProfitKrw, fmtKrw)}`);
   if (r.piggyUsdt) {
     console.log(
-      `  ${'돼지저금통 '} ${fmtKrw(r.piggyKrw)}   ` +
+      `  ${(r.piggyDay > 0 ? `돼지 ${r.piggyDay}일차` : '돼지저금통 ').padEnd(0)} ${fmtKrw(r.piggyKrw)}   ` +
       C.dim(`${fmtUsdt(r.piggyUsdt)} · 목표 ${fmtKrw(r.piggyGoalKrw)}의 ${r.piggyPct.toFixed(1)}%`)
     );
   }

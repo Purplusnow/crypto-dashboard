@@ -313,11 +313,11 @@ function render() {
     const goal = state.currency === 'KRW' ? last.piggyGoalKrw : last.piggyGoalUsdt;
     const pig = card();
     pig.classList.add('meter');
-    pig.title = `목표 ${cur.full(goal)} · ${fmtUsdt(last.piggyUsdt)}`;
+    pig.title = `목표 ${cur.full(goal)} · ${fmtUsdt(last.piggyUsdt)}${last.piggyStart ? ` · ${last.piggyStart} 시작` : ''}`;
 
     const plb = document.createElement('span');
     plb.className = 'meter-label';
-    plb.textContent = '돼지저금통';
+    plb.textContent = last.piggyDay > 0 ? `돼지저금통 (${last.piggyDay}일차)` : '돼지저금통';
 
     const pav = document.createElement('span');
     pav.className = 'meter-amt';

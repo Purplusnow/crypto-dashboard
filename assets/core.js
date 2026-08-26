@@ -171,6 +171,7 @@ export function buildSeries(config, flows, snapshots) {
   let carriedSeed = 0;
   let carriedProgress = 0;
   let carriedPiggy = 0;
+  let piggyStart = null; // 0으로 리셋될 때마다 다시 시작하는 저금 시작일
   const rows = [];
   let fi = 0;
   let cumDepKrw = 0;
@@ -213,6 +214,14 @@ export function buildSeries(config, flows, snapshots) {
     carriedProgress = progressPct;
     const piggyUsdt = s.piggy ?? carriedPiggy;
     carriedPiggy = piggyUsdt;
+    // N일차: 0에서 벗어난 날이 1일차, 이후 달력 기준으로 센다.
+    // 0으로 리셋하면 카운터도 초기화된다.
+    if (piggyUsdt > 0) {
+      if (piggyStart === null) piggyStart = s.date;
+    } else {
+      piggyStart = null;
+    }
+    const piggyDay = piggyStart === null ? 0 : daysBetween(piggyStart, s.date) + 1;
 
     const bonus2Usdt = seedUsdt * futureRate;
     const futureUsdt = bonusUsdt + bonus2Usdt;
@@ -252,6 +261,8 @@ export function buildSeries(config, flows, snapshots) {
       futureKrw: futureUsdt * fx,
       piggyUsdt,
       piggyKrw: piggyUsdt * fx,
+      piggyDay,
+      piggyStart,
       piggyGoalKrw,
       piggyGoalUsdt: piggyGoalKrw / fx,
       // 목표 대비 진행률. 넘겨도 100%에서 멈춘다 (보는 재미용).
