@@ -109,6 +109,7 @@ export function buildSeries(config, flows, snapshots) {
     ? Number(config.futureBonusRate)
     : 0.0017;
   const progressBase = num(config.progressBase) || 0;
+  const piggyGoalKrw = num(config.piggyGoalKrw) || 0;
 
   const snaps = (snapshots || [])
     .filter((s) => isDate(s.date))
@@ -251,6 +252,10 @@ export function buildSeries(config, flows, snapshots) {
       futureKrw: futureUsdt * fx,
       piggyUsdt,
       piggyKrw: piggyUsdt * fx,
+      piggyGoalKrw,
+      piggyGoalUsdt: piggyGoalKrw / fx,
+      // 목표 대비 진행률. 넘겨도 100%에서 멈춘다 (보는 재미용).
+      piggyPct: piggyGoalKrw > 0 ? Math.min(100, (piggyUsdt * fx * 100) / piggyGoalKrw) : 0,
       progressPct,
       progressUsdt: progressBase * (progressPct / 100),
       progressKrw: progressBase * (progressPct / 100) * fx,

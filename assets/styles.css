@@ -272,3 +272,5 @@ details.tableview[open] > summary::before { content: "▾"; }
   .card.meter { flex-wrap: wrap; gap: 8px 12px; }
   .meter-track { flex-basis: 100%; order: 3; }
 }
+/* 돼지저금통 막대는 계좌 색과 같은 계열로 — 저금통 항목 색(녹색) */
+.meter-fill.piggy { background: var(--piggy); }

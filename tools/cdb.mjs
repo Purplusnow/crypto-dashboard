@@ -548,7 +548,10 @@ commands.show = ({ pos }) => {
   }
   console.log(`  ${'전일 대비'}  ${pn(r.dProfitKrw, fmtKrw)}`);
   if (r.piggyUsdt) {
-    console.log(`  ${'돼지저금통 '} ${fmtKrw(r.piggyKrw)}   ${C.dim(fmtUsdt(r.piggyUsdt) + ' · 평가액에 포함')}`);
+    console.log(
+      `  ${'돼지저금통 '} ${fmtKrw(r.piggyKrw)}   ` +
+      C.dim(`${fmtUsdt(r.piggyUsdt)} · 목표 ${fmtKrw(r.piggyGoalKrw)}의 ${r.piggyPct.toFixed(1)}%`)
+    );
   }
   if (r.bonusUsdt) {
     console.log(`  ${'예정된보너스'} ${fmtKrw(r.bonusKrw)}   ${C.dim(fmtUsdt(r.bonusUsdt))}`);

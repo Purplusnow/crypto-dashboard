@@ -308,22 +308,38 @@ function render() {
   /* ---- 돼지저금통 -------------------------------------------------- */
   // 계좌 밖 주머니일 뿐 성격은 현금과 같다. 그래서 미래분이 아니라
   // 평가액·일별 손익·자산 배분에 그대로 들어간다.
+  // 목표 대비 막대는 보는 재미용이라 100%에서 멈춘다.
   if (last.piggyUsdt > 0) {
+    const goal = state.currency === 'KRW' ? last.piggyGoalKrw : last.piggyGoalUsdt;
     const pig = card();
     pig.classList.add('meter');
+    pig.title = `목표 ${cur.full(goal)} · ${fmtUsdt(last.piggyUsdt)}`;
+
     const plb = document.createElement('span');
     plb.className = 'meter-label';
     plb.textContent = '돼지저금통';
+
     const pav = document.createElement('span');
     pav.className = 'meter-amt';
     pav.textContent = cur.full(last[`piggy${K}`]);
-    const psp = document.createElement('span');
-    psp.className = 'meter-track';
-    psp.style.background = 'transparent';
-    const pnote = document.createElement('span');
-    pnote.className = 'meter-pct';
-    pnote.textContent = state.currency === 'KRW' ? fmtUsdt(last.piggyUsdt) : '현금 성격';
-    pig.append(plb, pav, psp, pnote);
+
+    const ptr = document.createElement('div');
+    ptr.className = 'meter-track';
+    ptr.setAttribute('role', 'progressbar');
+    ptr.setAttribute('aria-valuenow', last.piggyPct.toFixed(1));
+    ptr.setAttribute('aria-valuemin', '0');
+    ptr.setAttribute('aria-valuemax', '100');
+    ptr.setAttribute('aria-label', `돼지저금통 목표 ${cur.full(goal)} 대비 ${last.piggyPct.toFixed(1)}%`);
+    const pfl = document.createElement('div');
+    pfl.className = 'meter-fill piggy';
+    pfl.style.width = `${last.piggyPct}%`;
+    ptr.appendChild(pfl);
+
+    const ppc = document.createElement('span');
+    ppc.className = 'meter-pct';
+    ppc.textContent = `${last.piggyPct >= 100 ? 100 : last.piggyPct.toFixed(1)}% / ${cur.compact(goal)}`;
+
+    pig.append(plb, pav, ptr, ppc);
     const ps0 = section();
     ps0.appendChild(pig);
     app.appendChild(ps0);
