@@ -305,6 +305,30 @@ function render() {
   );
   app.appendChild(kpi);
 
+  /* ---- 돼지저금통 -------------------------------------------------- */
+  // 계좌 밖 주머니일 뿐 성격은 현금과 같다. 그래서 미래분이 아니라
+  // 평가액·일별 손익·자산 배분에 그대로 들어간다.
+  if (last.piggyUsdt > 0) {
+    const pig = card();
+    pig.classList.add('meter');
+    const plb = document.createElement('span');
+    plb.className = 'meter-label';
+    plb.textContent = '돼지저금통';
+    const pav = document.createElement('span');
+    pav.className = 'meter-amt';
+    pav.textContent = cur.full(last[`piggy${K}`]);
+    const psp = document.createElement('span');
+    psp.className = 'meter-track';
+    psp.style.background = 'transparent';
+    const pnote = document.createElement('span');
+    pnote.className = 'meter-pct';
+    pnote.textContent = state.currency === 'KRW' ? fmtUsdt(last.piggyUsdt) : '현금 성격';
+    pig.append(plb, pav, psp, pnote);
+    const ps0 = section();
+    ps0.appendChild(pig);
+    app.appendChild(ps0);
+  }
+
   /* ---- 레벨업 진행율 ----------------------------------------------- */
   // 한 줄짜리 미터. 값 하나라 카드 헤더 없이 라벨·금액·막대·퍼센트를 가로로 붙여
   // 높이를 최소로 가져간다. 채움/트랙은 같은 파랑 계열 두 단계.
@@ -414,15 +438,28 @@ function render() {
   }));
 
   stackedArea(h4, { dates, height: 280, yFmt: cur.compact, tipFmt: cur.full, series: acctSeries });
+  if (rows.some((r) => r.piggyUsdt > 0)) {
+    acctSeries.push({
+      id: '_piggy',
+      label: '돼지저금통',
+      color: 'var(--piggy)',
+      values: rows.map((r) => r[`piggy${K}`]),
+    });
+  }
   legend(lg4, acctSeries.map((x) => ({ label: x.label, color: x.color })));
   allocationBar(h5, {
     fmt: cur.full,
-    parts: accounts.map((a) => ({
-      id: a.id,
-      label: a.name,
-      color: acctColor(a.id),
-      value: acctValue(last, a.id, state.currency),
-    })),
+    parts: [
+      ...accounts.map((a) => ({
+        id: a.id,
+        label: a.name,
+        color: acctColor(a.id),
+        value: acctValue(last, a.id, state.currency),
+      })),
+      ...(last.piggyUsdt > 0
+        ? [{ id: '_piggy', label: '돼지저금통', color: 'var(--piggy)', value: last[`piggy${K}`] }]
+        : []),
+    ],
   });
 
   /* ---- 스테이킹 ---------------------------------------------------- */

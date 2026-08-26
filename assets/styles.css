@@ -30,6 +30,7 @@
   --ref: #898781; /* 원금선 등 기준 계열 */
   --meter-fill: #2a78d6;   /* 미터: 같은 파랑 계열의 두 단계 */
   --meter-track: #cde2fb;
+  --piggy: #008300;   /* 돼지저금통 — 계좌와 구분되는 6번째 슬롯 */
 
   --r: 10px;
   --font: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
@@ -62,6 +63,7 @@
     --down-ink: #6da7ec;
     --meter-fill: #3987e5;
     --meter-track: #184f95;
+    --piggy: #008300;
   }
 }
 
@@ -89,6 +91,7 @@
   --down-ink: #6da7ec;
   --meter-fill: #3987e5;
   --meter-track: #184f95;
+  --piggy: #008300;
 }
 
 /* ------------------------------------------------------------------ 기본 */

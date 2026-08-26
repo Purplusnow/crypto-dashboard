@@ -246,6 +246,10 @@ ${C.b('미래분 보너스')}  ${C.dim('— 큰 숫자에는 안 들어가고 �
                               요율은 data/config.json 의 futureBonusRate (기본 0.17%)
                               둘 다 다시 입력할 때까지 이월된다.
 
+${C.b('돼지저금통')}
+  piggy <USDT> [--date ...]       계좌 밖에 모아둔 실제 자산. 평가액과 일별 손익에
+                                  포함된다 (미래분 아님). 다시 입력할 때까지 이월.
+
 ${C.b('진행률')}
   progress <0~100> [--date ...]   퍼센트를 직접 입력한다. 금액은
                                   data/config.json 의 progressBase 에 곱해 나온다.
@@ -409,6 +413,20 @@ function balanceField(flags, field, label) {
   summary();
 }
 
+/** 돼지저금통 — 계좌 밖에 모아둔 실제 자산. 평가액·일별 손익에 포함된다. */
+commands.piggy = ({ flags, pos }) => {
+  const { config, snapshots } = ctx();
+  const v = Number(String(pos[0] ?? '').replace(/[_,\s]/g, ''));
+  if (!Number.isFinite(v) || v < 0) die('금액을 지정하세요 (USDT). 예: cdb piggy 0.55');
+  const date = dateFlag(flags);
+  const s = upsertSnapshot(snapshots, date);
+  s.piggy = v;
+  writeJSON(F.snapshots, snapshots);
+  clearSample(config);
+  console.log(`${C.green('✔')} ${date}  돼지저금통 ${C.b(fmtUsdt(v))}  ${C.dim('평가액에 포함')}`);
+  summary();
+};
+
 /** 진행률(%). 금액은 config.progressBase 에 곱해 파생한다. */
 commands.progress = ({ flags, pos }) => {
   const { config, snapshots } = ctx();
@@ -529,6 +547,9 @@ commands.show = ({ pos }) => {
     console.log(`  ${'총 수익  '}  ${C.dim('—')}   ${C.dim('입금 기록이 없어 계산할 수 없습니다')}`);
   }
   console.log(`  ${'전일 대비'}  ${pn(r.dProfitKrw, fmtKrw)}`);
+  if (r.piggyUsdt) {
+    console.log(`  ${'돼지저금통 '} ${fmtKrw(r.piggyKrw)}   ${C.dim(fmtUsdt(r.piggyUsdt) + ' · 평가액에 포함')}`);
+  }
   if (r.bonusUsdt) {
     console.log(`  ${'예정된보너스'} ${fmtKrw(r.bonusKrw)}   ${C.dim(fmtUsdt(r.bonusUsdt))}`);
   }

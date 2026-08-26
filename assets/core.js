@@ -70,6 +70,9 @@ function normalizeSnapshot(snap, accountIds) {
     // 진행률(%) — 직접 입력하고 이월된다. 금액은 config.progressBase 에 곱해 파생.
     progress:
       snap.progress === undefined || snap.progress === null ? undefined : num(snap.progress),
+    // 돼지저금통 — 계좌 밖에 따로 모아둔 실제 자산. 미래분이 아니므로
+    // 평가액(큰 숫자)과 일별 손익에 그대로 들어간다.
+    piggy: snap.piggy === undefined || snap.piggy === null ? undefined : num(snap.piggy),
     balances: {},
   };
   for (const id of accountIds) {
@@ -166,6 +169,7 @@ export function buildSeries(config, flows, snapshots) {
   let carriedBonus = 0;
   let carriedSeed = 0;
   let carriedProgress = 0;
+  let carriedPiggy = 0;
   const rows = [];
   let fi = 0;
   let cumDepKrw = 0;
@@ -206,14 +210,17 @@ export function buildSeries(config, flows, snapshots) {
     // 예정될 보너스 = 시드 × 요율 (더 먼 미래에 들어올 몫)
     const progressPct = s.progress ?? carriedProgress;
     carriedProgress = progressPct;
+    const piggyUsdt = s.piggy ?? carriedPiggy;
+    carriedPiggy = piggyUsdt;
 
     const bonus2Usdt = seedUsdt * futureRate;
     const futureUsdt = bonusUsdt + bonus2Usdt;
 
     const acctsUsdt = ids.reduce((a, id) => a + acctUsdt(per[id]), 0);
     const totalKrwCash = ids.reduce((a, id) => a + per[id].krw, 0);
-    // 평가액 = 계좌 코인 + 미래분(예정 + 예정될) + 원화 잔고
-    const totalUsdt = acctsUsdt + futureUsdt;
+    // 평가액 = 계좌 코인 + 돼지저금통 + 미래분(예정 + 예정될) + 원화 잔고
+    // 돼지저금통은 futureUsdt 에 넣지 않으므로 미래분 제외 값에도 남는다.
+    const totalUsdt = acctsUsdt + piggyUsdt + futureUsdt;
     const valUsdt = totalUsdt + totalKrwCash / fx;
     const valKrw = totalUsdt * fx + totalKrwCash;
 
@@ -242,6 +249,8 @@ export function buildSeries(config, flows, snapshots) {
       bonus2Krw: bonus2Usdt * fx,
       futureUsdt,
       futureKrw: futureUsdt * fx,
+      piggyUsdt,
+      piggyKrw: piggyUsdt * fx,
       progressPct,
       progressUsdt: progressBase * (progressPct / 100),
       progressKrw: progressBase * (progressPct / 100) * fx,
