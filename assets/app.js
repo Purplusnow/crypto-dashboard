@@ -344,6 +344,22 @@ function render() {
     app.appendChild(ps);
   }
 
+  /* ---- 일별 손익 --------------------------------------------------- */
+  const s2 = section();
+  const c3 = card('일별 손익');
+  const h3 = chartHost();
+  c3.appendChild(h3);
+  s2.appendChild(c3);
+  app.appendChild(s2);
+  divergingColumns(h3, {
+    dates,
+    height: 200,
+    label: '일별 손익',
+    yFmt: cur.compact,
+    tipFmt: cur.full,
+    values: rows.map((r) => r[`dProfitEx${K}`]),
+  });
+
   /* ---- 평가액 vs 원금 ------------------------------------------ */
   const s1 = section();
   const c1 = card('평가액과 원금');
@@ -372,22 +388,6 @@ function render() {
     { label: '원금 초과 (수익)', color: 'var(--up)' },
     { label: '원금 미달 (손실)', color: 'var(--down)' },
   ]);
-
-  /* ---- 일별 손익 --------------------------------------------------- */
-  const s2 = section();
-  const c3 = card('일별 손익');
-  const h3 = chartHost();
-  c3.appendChild(h3);
-  s2.appendChild(c3);
-  app.appendChild(s2);
-  divergingColumns(h3, {
-    dates,
-    height: 200,
-    label: '일별 손익',
-    yFmt: cur.compact,
-    tipFmt: cur.full,
-    values: rows.map((r) => r[`dProfitEx${K}`]),
-  });
 
   /* ---- 계좌별 잔고 추이 + 현재 배분 -------------------------------- */
   const s3 = section();
