@@ -249,11 +249,11 @@
     "date": "2026-08-28",
     "balances": {
       "NA": {
-        "usdt": 120
+        "usdt": 123
       }
     },
-    "piggy": 7.15,
-    "fx": 1381,
+    "piggy": 8.8,
+    "fx": 1383,
     "bonusSeed": 21891,
     "bonus": 5
   }
