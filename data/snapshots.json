@@ -244,5 +244,15 @@
     "bonus": 15,
     "piggy": 1.74,
     "progress": 28
+  },
+  {
+    "date": "2026-08-28",
+    "balances": {
+      "NA": {
+        "usdt": 58
+      }
+    },
+    "piggy": 6.5,
+    "fx": 1381
   }
 ]
