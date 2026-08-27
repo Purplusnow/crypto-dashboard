@@ -393,8 +393,10 @@ function render() {
   app.appendChild(s2);
   divergingColumns(h3, {
     dates,
-    height: 200,
+    height: 220,
     label: '일별 손익',
+    showValues: true,
+    labelFmt: cur.compact,
     yFmt: cur.compact,
     tipFmt: cur.full,
     values: rows.map((r) => r[`dProfitEx${K}`]),

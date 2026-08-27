@@ -359,7 +359,8 @@ export function stackedArea(host, cfg) {
 export function divergingColumns(host, cfg) {
   const { dates, values, yFmt, tipFmt, label } = cfg;
   mount(host, cfg.height || 200, ({ svg, W, H, tip }) => {
-    const m = { t: 14, r: 16, b: 30, l: cfg.leftPad || 62 };
+    // 값 라벨을 막대 위/아래에 두므로 위아래 여백을 더 준다
+    const m = { t: cfg.showValues ? 24 : 14, r: 16, b: cfg.showValues ? 36 : 30, l: cfg.leftPad || 62 };
     const hi = Math.max(...values, 0);
     const lo = Math.min(...values, 0);
     const pad = (hi - lo) * 0.1 || 1;
@@ -384,6 +385,28 @@ export function divergingColumns(host, cfg) {
       g.appendChild(bar);
     });
     svg.appendChild(g);
+
+    // 호버 없이도 읽히도록 값을 막대에 직접 붙인다.
+    // 슬롯이 좁아 라벨이 겹칠 상황이면 최대·최소·마지막만 남긴다.
+    if (cfg.showValues && values.length) {
+      const fmtV = cfg.labelFmt || yFmt;
+      const widest = Math.max(...values.map((v) => fmtV(Math.abs(v)).length + 1));
+      const roomy = slot >= widest * 6.2;
+      const hiIdx = values.indexOf(Math.max(...values));
+      const loIdx = values.indexOf(Math.min(...values));
+      const keep = new Set(roomy ? values.map((_, i) => i) : [hiIdx, loIdx, values.length - 1]);
+      values.forEach((v, i) => {
+        if (!keep.has(i) || v === 0) return;
+        const t = el(
+          'text',
+          { x: sx(i), y: v >= 0 ? sy(v) - 6 : sy(v) + 14, 'text-anchor': 'middle' },
+          { fill: 'var(--text-secondary)' }
+        );
+        t.setAttribute('class', 'bar-label');
+        t.textContent = (v > 0 ? '+' : '−') + fmtV(Math.abs(v));
+        svg.appendChild(t);
+      });
+    }
 
     attachCrosshair({
       svg, host, tip, W, H, m, n: dates.length, sx,
