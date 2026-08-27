@@ -237,12 +237,12 @@
     "date": "2026-08-27",
     "balances": {
       "NA": {
-        "usdt": 168
+        "usdt": 170
       }
     },
     "fx": 1385,
     "bonus": 15,
-    "piggy": 1,
+    "piggy": 1.17,
     "progress": 28
   }
 ]
