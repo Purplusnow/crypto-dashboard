@@ -420,10 +420,22 @@ commands.piggy = ({ flags, pos }) => {
   if (!Number.isFinite(v) || v < 0) die('금액을 지정하세요 (USDT). 예: cdb piggy 0.55');
   const date = dateFlag(flags);
   const s = upsertSnapshot(snapshots, date);
+
+  // 0 → 양수로 바뀌는 순간이 새 저금의 시작이다. 같은 날 안에서 비웠다가
+  // 다시 넣어도 1일차부터 세도록 시작일을 못 박는다.
+  const before = (() => {
+    const { rows } = buildSeries(config, readJSON(F.flows, []), snapshots);
+    const r = rows.filter((x) => x.date <= date).pop();
+    return r ? r.piggyUsdt : 0;
+  })();
   s.piggy = v;
+  if (v > 0 && before === 0) s.piggyStart = date;
+  if (v === 0) delete s.piggyStart;
+
   writeJSON(F.snapshots, snapshots);
   clearSample(config);
-  console.log(`${C.green('✔')} ${date}  돼지저금통 ${C.b(fmtUsdt(v))}  ${C.dim('평가액에 포함')}`);
+  const restarted = v > 0 && before === 0 ? C.dim(' · 1일차 시작') : '';
+  console.log(`${C.green('✔')} ${date}  돼지저금통 ${C.b(fmtUsdt(v))}  ${C.dim('평가액에 포함')}${restarted}`);
   summary();
 };
 

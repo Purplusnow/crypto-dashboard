@@ -73,6 +73,9 @@ function normalizeSnapshot(snap, accountIds) {
     // 돼지저금통 — 계좌 밖에 따로 모아둔 실제 자산. 미래분이 아니므로
     // 평가액(큰 숫자)과 일별 손익에 그대로 들어간다.
     piggy: snap.piggy === undefined || snap.piggy === null ? undefined : num(snap.piggy),
+    // 저금 재시작일. 같은 날 안에서 0으로 비웠다가 다시 넣으면 일 단위로는
+    // 흔적이 남지 않으므로, 그 순간을 CLI가 여기에 못 박아 둔다.
+    piggyStart: snap.piggyStart || undefined,
     balances: {},
   };
   for (const id of accountIds) {
@@ -217,7 +220,8 @@ export function buildSeries(config, flows, snapshots) {
     // N일차: 0에서 벗어난 날이 1일차, 이후 달력 기준으로 센다.
     // 0으로 리셋하면 카운터도 초기화된다.
     if (piggyUsdt > 0) {
-      if (piggyStart === null) piggyStart = s.date;
+      if (s.piggyStart) piggyStart = s.piggyStart;
+      else if (piggyStart === null) piggyStart = s.date;
     } else {
       piggyStart = null;
     }
