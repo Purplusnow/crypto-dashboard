@@ -261,11 +261,11 @@
     "date": "2026-08-29",
     "balances": {
       "NA": {
-        "usdt": 56.6
+        "usdt": 64
       }
     },
-    "piggy": 16.3,
-    "fx": 1391,
+    "piggy": 17,
+    "fx": 1388,
     "progress": 29
   }
 ]
