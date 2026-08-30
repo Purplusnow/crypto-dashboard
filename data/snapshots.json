@@ -274,14 +274,14 @@
     "date": "2026-08-30",
     "balances": {
       "NA": {
-        "usdt": 110
+        "usdt": 115
       },
       "OK": {
         "usdt": 0
       }
     },
     "fx": 1390,
-    "piggy": 3.3,
+    "piggy": 3.5,
     "piggyStart": "2026-08-30"
   }
 ]
