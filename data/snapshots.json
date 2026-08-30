@@ -274,14 +274,18 @@
     "date": "2026-08-30",
     "balances": {
       "NA": {
-        "usdt": 120
+        "usdt": 6.67
       },
       "OK": {
         "usdt": 0
+      },
+      "BT": {
+        "krw": 150000
       }
     },
     "fx": 1388,
     "piggy": 3.6,
-    "piggyStart": "2026-08-30"
+    "piggyStart": "2026-08-30",
+    "bonus": 31.25
   }
 ]
