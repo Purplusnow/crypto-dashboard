@@ -360,7 +360,7 @@ export function divergingColumns(host, cfg) {
   const { dates, values, yFmt, tipFmt, label } = cfg;
   mount(host, cfg.height || 200, ({ svg, W, H, tip }) => {
     // 값 라벨을 막대 위/아래에 두므로 위아래 여백을 더 준다
-    const m = { t: cfg.showValues ? 24 : 14, r: 16, b: cfg.showValues ? 36 : 30, l: cfg.leftPad || 62 };
+    const m = { t: cfg.showValues ? 36 : 14, r: 16, b: cfg.showValues ? 48 : 30, l: cfg.leftPad || 62 };
     const hi = Math.max(...values, 0);
     const lo = Math.min(...values, 0);
     const pad = (hi - lo) * 0.1 || 1;
@@ -390,16 +390,22 @@ export function divergingColumns(host, cfg) {
     // 슬롯이 좁아 라벨이 겹칠 상황이면 최대·최소·마지막만 남긴다.
     if (cfg.showValues && values.length) {
       const fmtV = cfg.labelFmt || yFmt;
-      const widest = Math.max(...values.map((v) => fmtV(Math.abs(v)).length + 1));
-      const roomy = slot >= widest * 6.2;
+      const need = Math.max(...values.map((v) => fmtV(Math.abs(v)).length + 1)) * 6.2;
+      // 한 줄로 안 들어가면 위아래 두 줄로 엇갈리게 놓아 밀도를 두 배로 쓴다.
+      // 그래도 좁으면 최고·최저·마지막만 남긴다.
+      const mode = slot >= need ? 'all' : slot * 2 >= need ? 'stagger' : 'extremes';
       const hiIdx = values.indexOf(Math.max(...values));
       const loIdx = values.indexOf(Math.min(...values));
-      const keep = new Set(roomy ? values.map((_, i) => i) : [hiIdx, loIdx, values.length - 1]);
+      const keep =
+        mode === 'extremes'
+          ? new Set([hiIdx, loIdx, values.length - 1])
+          : new Set(values.map((_, i) => i));
       values.forEach((v, i) => {
         if (!keep.has(i) || v === 0) return;
+        const tier = mode === 'stagger' && i % 2 === 1 ? 12 : 0;
         const t = el(
           'text',
-          { x: sx(i), y: v >= 0 ? sy(v) - 6 : sy(v) + 14, 'text-anchor': 'middle' },
+          { x: sx(i), y: v >= 0 ? sy(v) - 6 - tier : sy(v) + 14 + tier, 'text-anchor': 'middle' },
           { fill: 'var(--text-secondary)' }
         );
         t.setAttribute('class', 'bar-label');

@@ -393,7 +393,7 @@ function render() {
   app.appendChild(s2);
   divergingColumns(h3, {
     dates,
-    height: 220,
+    height: 250,
     label: '일별 손익',
     showValues: true,
     labelFmt: cur.full,  // 막대 값은 축약 없이 그대로
