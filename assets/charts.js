@@ -359,8 +359,29 @@ export function stackedArea(host, cfg) {
 export function divergingColumns(host, cfg) {
   const { dates, values, yFmt, tipFmt, label } = cfg;
   mount(host, cfg.height || 200, ({ svg, W, H, tip }) => {
-    // 값 라벨을 막대 위/아래에 두므로 위아래 여백을 더 준다
-    const m = { t: cfg.showValues ? 36 : 14, r: 16, b: cfg.showValues ? 48 : 30, l: cfg.leftPad || 62 };
+    const m = { t: 14, r: 16, b: 30, l: cfg.leftPad || 62 };
+
+    // 라벨 배치를 먼저 정한다. 겹치면 축약하기보다 단(段)을 늘려 정보를 지킨다.
+    // 3단까지 늘려도 모자랄 때만 축약으로, 그래도 안 되면 극값만 남긴다.
+    const TIER = 12;
+    const MAX_TIERS = 3;
+    const slotW = dates.length > 1 ? (W - m.l - m.r) / (dates.length - 1) : W - m.l - m.r;
+    let plan = { tiers: 1, fmt: cfg.labelFmt || yFmt, extremes: false };
+    if (cfg.showValues && values.length) {
+      const full = cfg.labelFmt || yFmt;
+      const compact = cfg.labelFmtCompact || full;
+      const widthOf = (f) => Math.max(...values.map((v) => f(Math.abs(v)).length + 1)) * 6.2;
+      const tiersFor = (f) => Math.ceil(widthOf(f) / slotW);
+      const tf = tiersFor(full);
+      const tc = tiersFor(compact);
+      if (tf <= MAX_TIERS) plan = { tiers: Math.max(1, tf), fmt: full, extremes: false };
+      else if (tc <= MAX_TIERS) plan = { tiers: Math.max(1, tc), fmt: compact, extremes: false };
+      else plan = { tiers: 1, fmt: compact, extremes: true };
+      // 단 수만큼 위아래 여백을 넓힌다
+      const pad = (plan.tiers - 1) * TIER;
+      m.t = 24 + pad;
+      m.b = 36 + pad;
+    }
     const hi = Math.max(...values, 0);
     const lo = Math.min(...values, 0);
     const pad = (hi - lo) * 0.1 || 1;
@@ -389,37 +410,50 @@ export function divergingColumns(host, cfg) {
     // 호버 없이도 읽히도록 값을 막대에 직접 붙인다.
     // 슬롯이 좁아 라벨이 겹칠 상황이면 최대·최소·마지막만 남긴다.
     if (cfg.showValues && values.length) {
-      // 자리에 맞춰 단계적으로 물러난다:
-      //   전체숫자 한 줄 → 전체숫자 두 줄 → 축약 두 줄 → 극값만
-      const full = cfg.labelFmt || yFmt;
-      const compact = cfg.labelFmtCompact || full;
-      const widthOf = (f) => Math.max(...values.map((v) => f(Math.abs(v)).length + 1)) * 6.2;
-      const needFull = widthOf(full);
-      const needCompact = widthOf(compact);
-      let fmtV = full;
-      let mode;
-      if (slot >= needFull) mode = 'all';
-      else if (slot * 2 >= needFull) mode = 'stagger';
-      else if (slot * 2 >= needCompact) { mode = 'stagger'; fmtV = compact; }
-      else { mode = 'extremes'; fmtV = compact; }
       const hiIdx = values.indexOf(Math.max(...values));
       const loIdx = values.indexOf(Math.min(...values));
-      const keep =
-        mode === 'extremes'
-          ? new Set([hiIdx, loIdx, values.length - 1])
-          : new Set(values.map((_, i) => i));
-      values.forEach((v, i) => {
-        if (!keep.has(i) || v === 0) return;
-        const tier = mode === 'stagger' && i % 2 === 1 ? 12 : 0;
-        const t = el(
-          'text',
-          { x: sx(i), y: v >= 0 ? sy(v) - 6 - tier : sy(v) + 14 + tier, 'text-anchor': 'middle' },
-          { fill: 'var(--text-secondary)' }
-        );
+      const keep = plan.extremes
+        ? new Set([hiIdx, loIdx, values.length - 1])
+        : new Set(values.map((_, i) => i));
+
+      // 단 오프셋은 막대 끝 기준이라, 높이가 다른 막대끼리는 단이 달라도
+      // 실제 y가 겹칠 수 있다. 그래서 실제 상자로 충돌을 검사해 단을 고른다.
+      const place = (fmt) => {
+        const boxes = [];
+        const out = [];
+        let dropped = 0;
+        values.forEach((v, i) => {
+          if (!keep.has(i) || v === 0) return;
+          const text = (v > 0 ? '+' : '−') + fmt(Math.abs(v));
+          const hw = (text.length * 6.2) / 2;
+          const x = sx(i);
+          let placed = null;
+          for (let k = 0; k < plan.tiers; k++) {
+            const y = v >= 0 ? sy(v) - 6 - k * TIER : sy(v) + 14 + k * TIER;
+            const box = { x1: x - hw, x2: x + hw, y1: y - 9, y2: y + 3 };
+            const hit = boxes.some(
+              (b2) => box.x1 < b2.x2 && box.x2 > b2.x1 && box.y1 < b2.y2 && box.y2 > b2.y1
+            );
+            if (!hit) { placed = { x, y, text, box }; break; }
+          }
+          if (placed) { boxes.push(placed.box); out.push(placed); }
+          else dropped++;
+        });
+        return { out, dropped };
+      };
+
+      let laid = place(plan.fmt);
+      // 20% 넘게 못 놓으면 축약으로 한 번 더 시도한다
+      if (!plan.extremes && laid.dropped > keep.size * 0.2 && cfg.labelFmtCompact) {
+        const alt = place(cfg.labelFmtCompact);
+        if (alt.dropped < laid.dropped) laid = alt;
+      }
+      for (const p of laid.out) {
+        const t = el('text', { x: p.x, y: p.y, 'text-anchor': 'middle' }, { fill: 'var(--text-secondary)' });
         t.setAttribute('class', 'bar-label');
-        t.textContent = (v > 0 ? '+' : '−') + fmtV(Math.abs(v));
+        t.textContent = p.text;
         svg.appendChild(t);
-      });
+      }
     }
 
     attachCrosshair({
