@@ -396,7 +396,8 @@ function render() {
     height: 250,
     label: '일별 손익',
     showValues: true,
-    labelFmt: cur.full,  // 막대 값은 축약 없이 그대로
+    labelFmt: cur.full,           // 자리가 되면 전체 숫자
+    labelFmtCompact: cur.compact, // 좁아지면 자동으로 축약
     yFmt: cur.compact,
     tipFmt: cur.full,
     values: rows.map((r) => r[`dProfitEx${K}`]),

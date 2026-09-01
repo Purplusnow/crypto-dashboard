@@ -389,11 +389,19 @@ export function divergingColumns(host, cfg) {
     // 호버 없이도 읽히도록 값을 막대에 직접 붙인다.
     // 슬롯이 좁아 라벨이 겹칠 상황이면 최대·최소·마지막만 남긴다.
     if (cfg.showValues && values.length) {
-      const fmtV = cfg.labelFmt || yFmt;
-      const need = Math.max(...values.map((v) => fmtV(Math.abs(v)).length + 1)) * 6.2;
-      // 한 줄로 안 들어가면 위아래 두 줄로 엇갈리게 놓아 밀도를 두 배로 쓴다.
-      // 그래도 좁으면 최고·최저·마지막만 남긴다.
-      const mode = slot >= need ? 'all' : slot * 2 >= need ? 'stagger' : 'extremes';
+      // 자리에 맞춰 단계적으로 물러난다:
+      //   전체숫자 한 줄 → 전체숫자 두 줄 → 축약 두 줄 → 극값만
+      const full = cfg.labelFmt || yFmt;
+      const compact = cfg.labelFmtCompact || full;
+      const widthOf = (f) => Math.max(...values.map((v) => f(Math.abs(v)).length + 1)) * 6.2;
+      const needFull = widthOf(full);
+      const needCompact = widthOf(compact);
+      let fmtV = full;
+      let mode;
+      if (slot >= needFull) mode = 'all';
+      else if (slot * 2 >= needFull) mode = 'stagger';
+      else if (slot * 2 >= needCompact) { mode = 'stagger'; fmtV = compact; }
+      else { mode = 'extremes'; fmtV = compact; }
       const hiIdx = values.indexOf(Math.max(...values));
       const loIdx = values.indexOf(Math.min(...values));
       const keep =
