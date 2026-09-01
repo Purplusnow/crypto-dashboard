@@ -396,8 +396,10 @@ function render() {
     height: 250,
     label: '일별 손익',
     showValues: true,
-    labelFmt: cur.full,           // 자리가 되면 전체 숫자
-    labelFmtCompact: cur.compact, // 좁아지면 자동으로 축약
+    labelSigned: false, // 부호는 막대의 위아래 위치가 알려준다
+    // 통화 기호 없이 숫자만 — 축과 카드 제목이 단위를 이미 말해준다
+    labelFmt: (v) => (state.currency === 'KRW' ? Math.round(v).toLocaleString('ko-KR') : fmtNum(v, 2)),
+    labelFmtCompact: (v) => cur.compact(v).replace('₩', ''),
     yFmt: cur.compact,
     tipFmt: cur.full,
     values: rows.map((r) => r[`dProfitEx${K}`]),

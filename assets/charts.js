@@ -424,7 +424,8 @@ export function divergingColumns(host, cfg) {
         let dropped = 0;
         values.forEach((v, i) => {
           if (!keep.has(i) || v === 0) return;
-          const text = (v > 0 ? '+' : '−') + fmt(Math.abs(v));
+          // 부호는 막대의 위아래 위치가, 통화는 축이 이미 알려준다.
+          const text = (cfg.labelSigned === false ? '' : v > 0 ? '+' : '−') + fmt(Math.abs(v));
           const hw = (text.length * 6.2) / 2;
           const x = sx(i);
           let placed = null;
