@@ -317,13 +317,13 @@
     "date": "2026-09-02",
     "balances": {
       "NA": {
-        "usdt": 131.6
+        "usdt": 132.19
       },
       "OK": {
         "usdt": 100
       }
     },
-    "fx": 1375,
+    "fx": 1374,
     "progress": 32,
     "bonusSeed": 22768
   }
