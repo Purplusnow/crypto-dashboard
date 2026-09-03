@@ -69,5 +69,6 @@
   "futureBonusRate": 0.0017,
   "progressBase": 768,
   "progressLabel": "나노 레벨업 진행율",
-  "piggyGoalKrw": 100000
+  "piggyGoalKrw": 100000,
+  "pnlSplitAccount": "OK"
 }

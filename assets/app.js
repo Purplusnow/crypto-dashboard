@@ -1,4 +1,4 @@
-import { buildSeries, currencyFns, fmtNum, fmtKrw, fmtUsdt, signOf, acctUsdt } from './core.js';
+import { buildSeries, currencyFns, fmtNum, fmtKrw, fmtUsdt, fmtSigned, signOf, acctUsdt } from './core.js';
 import { lineChart, stackedArea, divergingColumns, allocationBar, sparkline, legend } from './charts.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -384,26 +384,48 @@ function render() {
     app.appendChild(ps);
   }
 
-  /* ---- 일별 손익 --------------------------------------------------- */
+  /* ---- 일별 손익 (OKX 분리) ---------------------------------------- */
+  // OKX 는 이체가 잦아 잔고 변화가 곧 손익이 아니다. 그래서 손익을 따로 떼어
+  // 두 카드로 나눈다 — 왼쪽은 OKX 를 뺀 나머지, 오른쪽은 OKX 만.
   const s2 = section();
-  const c3 = card('일별 손익');
-  const h3 = chartHost();
-  c3.appendChild(h3);
-  s2.appendChild(c3);
-  app.appendChild(s2);
-  divergingColumns(h3, {
+  const g2 = grid('wide');
+  const numOnly = (v) =>
+    state.currency === 'KRW' ? Math.round(v).toLocaleString('ko-KR') : fmtNum(v, 2);
+  const pnlOpts = {
     dates,
     height: 250,
-    label: '일별 손익',
     showValues: true,
     labelSigned: false, // 부호는 막대의 위아래 위치가 알려준다
     // 통화 기호 없이 숫자만 — 축과 카드 제목이 단위를 이미 말해준다
-    labelFmt: (v) => (state.currency === 'KRW' ? Math.round(v).toLocaleString('ko-KR') : fmtNum(v, 2)),
+    labelFmt: numOnly,
     labelFmtCompact: (v) => cur.compact(v).replace('₩', ''),
     yFmt: cur.compact,
     tipFmt: cur.full,
-    values: rows.map((r) => r[`dProfitEx${K}`]),
+  };
+
+  const c3 = card('일별 손익', 'OKX 제외');
+  const h3 = chartHost();
+  c3.appendChild(h3);
+  g2.appendChild(c3);
+  divergingColumns(h3, {
+    ...pnlOpts,
+    label: '일별 손익 (OKX 제외)',
+    values: rows.map((r) => r[`dProfitCore${K}`]),
   });
+
+  // OKX 는 이체를 손익으로 치지 않는다 — 누적 손익 = 잔고 − 누적 이체유입
+  const c3b = card('OKX 손익', `누적 ${fmtSigned(last[`okPnl${K}`], cur.full)}`);
+  const h3b = chartHost();
+  c3b.appendChild(h3b);
+  g2.appendChild(c3b);
+  divergingColumns(h3b, {
+    ...pnlOpts,
+    label: 'OKX 일별 손익',
+    values: rows.map((r) => r[`dOkPnl${K}`]),
+  });
+
+  s2.appendChild(g2);
+  app.appendChild(s2);
 
   /* ---- 평가액 vs 원금 ------------------------------------------ */
   const s1 = section();

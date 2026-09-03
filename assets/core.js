@@ -76,6 +76,10 @@ function normalizeSnapshot(snap, accountIds) {
     // 저금 재시작일. 같은 날 안에서 0으로 비웠다가 다시 넣으면 일 단위로는
     // 흔적이 남지 않으므로, 그 순간을 CLI가 여기에 못 박아 둔다.
     piggyStart: snap.piggyStart || undefined,
+    // OKX 로 순유입된 이체액(USDT, 나가면 음수). 상태가 아니라 그날의 사건이라
+    // 이월하지 않는다. OKX 손익을 "잔고 − 누적 유입"으로 계산해 입출금을
+    // 손익에서 걷어내기 위한 값이다.
+    okIn: snap.okIn === undefined || snap.okIn === null ? 0 : num(snap.okIn),
     balances: {},
   };
   for (const id of accountIds) {
@@ -113,6 +117,9 @@ export function buildSeries(config, flows, snapshots) {
     : 0.0017;
   const progressBase = num(config.progressBase) || 0;
   const piggyGoalKrw = num(config.piggyGoalKrw) || 0;
+  // 손익을 따로 떼어 보는 계좌(OKX). 이 계좌의 손익은 이체를 제외한 순수 변화이고,
+  // 나머지 손익에서는 이 값을 뺀다.
+  const splitId = config.pnlSplitAccount || null;
 
   const snaps = (snapshots || [])
     .filter((s) => isDate(s.date))
@@ -179,6 +186,7 @@ export function buildSeries(config, flows, snapshots) {
   let fi = 0;
   let cumDepKrw = 0;
   let cumDepUsdt = 0;
+  let cumOkInUsdt = 0;
   let prev = null;
 
   for (const s of snaps) {
@@ -241,6 +249,12 @@ export function buildSeries(config, flows, snapshots) {
     const stakedUsdt = ids.reduce((a, id) => a + per[id].staked, 0);
     const avgDivUsdt = ids.reduce((a, id) => a + per[id].avgDiv, 0);
 
+    // OKX 손익 = 현재 잔고 − 지금까지 순유입된 이체액.
+    // 이체는 벌거나 잃은 게 아니므로 빼고, 들어온 뒤의 변화만 손익으로 남긴다.
+    cumOkInUsdt += s.okIn || 0;
+    const okBalUsdt = splitId && per[splitId] ? acctUsdt(per[splitId]) : 0;
+    const okPnlUsdt = splitId ? okBalUsdt - cumOkInUsdt : 0;
+
     const row = {
       date: s.date,
       fx,
@@ -291,6 +305,26 @@ export function buildSeries(config, flows, snapshots) {
       dValExKrw: prev ? valKrw - futureUsdt * fx - prev.valExKrw : 0,
       dProfitExUsdt: prev ? valUsdt - futureUsdt - cumDepUsdt - prev.profitExUsdt : 0,
       dProfitExKrw: prev ? valKrw - futureUsdt * fx - cumDepKrw - prev.profitExKrw : 0,
+      // OKX 분리 손익 — 이체는 빼고 들어온 뒤의 순수 변화만
+      okInUsdt: s.okIn || 0,
+      okInKrw: (s.okIn || 0) * fx,
+      okCumInUsdt: cumOkInUsdt,
+      okCumInKrw: cumOkInUsdt * fx,
+      okBalUsdt,
+      okBalKrw: okBalUsdt * fx,
+      okPnlUsdt,
+      okPnlKrw: okPnlUsdt * fx,
+      dOkPnlUsdt: prev ? okPnlUsdt - prev.okPnlUsdt : 0,
+      dOkPnlKrw: prev ? okPnlUsdt * fx - prev.okPnlKrw : 0,
+      // OKX 를 뺀 나머지 (미래분도 제외한 기준)
+      profitCoreUsdt: valUsdt - futureUsdt - cumDepUsdt - okPnlUsdt,
+      profitCoreKrw: valKrw - futureUsdt * fx - cumDepKrw - okPnlUsdt * fx,
+      dProfitCoreUsdt: prev
+        ? valUsdt - futureUsdt - cumDepUsdt - okPnlUsdt - prev.profitCoreUsdt
+        : 0,
+      dProfitCoreKrw: prev
+        ? valKrw - futureUsdt * fx - cumDepKrw - okPnlUsdt * fx - prev.profitCoreKrw
+        : 0,
       // 그날 순수 외부 입출금 (손익 왜곡 방지용 참고값)
       flowUsdt: 0,
       flowKrw: 0,

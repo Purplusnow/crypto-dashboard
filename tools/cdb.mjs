@@ -494,6 +494,37 @@ commands.bonus = ({ flags, pos }) => {
   summary();
 };
 
+/**
+ * OKX 로 옮긴(또는 빼낸) 이체액을 기록한다. 이체는 손익이 아니므로 OKX 손익
+ * 계산에서 걷어내기 위한 값이다. 나가는 이체는 음수로 준다.
+ *   cdb okin 100     · 100 USDT 를 OKX 로 이동
+ *   cdb okin -30     · 30 USDT 를 OKX 에서 회수
+ */
+commands.okin = ({ flags, pos }) => {
+  const { config, flows, snapshots } = ctx();
+  const v = Number(String(pos[0] ?? '').replace(/[_,\s]/g, ''));
+  if (!Number.isFinite(v)) die('이체액을 지정하세요 (USDT). 예: cdb okin 100');
+  const date = dateFlag(flags);
+  const s = upsertSnapshot(snapshots, date);
+  // 같은 날 여러 번 옮길 수 있으니 누적한다 (--set 이면 덮어쓴다)
+  s.okIn = flags.set ? v : (Number(s.okIn) || 0) + v;
+  writeJSON(F.snapshots, snapshots);
+  clearSample(config);
+  const { latest } = buildSeries(config, flows, snapshots);
+  console.log(
+    `${C.green('✔')} ${date}  OKX 이체 ${C.b((v > 0 ? '+' : '') + fmtUsdt(v))}  ` +
+    C.dim(`그날 합계 ${fmtUsdt(s.okIn)} · 누적 ${fmtUsdt(latest?.okCumInUsdt ?? 0)}`)
+  );
+  if (latest) {
+    console.log(
+      C.dim(`  OKX 손익 `) +
+      (latest.okPnlKrw > 0 ? C.red(`+${fmtKrw(latest.okPnlKrw)}`) : latest.okPnlKrw < 0 ? C.blue(`-${fmtKrw(-latest.okPnlKrw)}`) : C.dim('±0')) +
+      C.dim(`  · 잔고 ${fmtUsdt(latest.okBalUsdt)}`)
+    );
+  }
+  summary();
+};
+
 commands.fx = async ({ flags, pos }) => {
   const { config, snapshots } = ctx();
   const date = dateFlag(flags);
@@ -559,6 +590,14 @@ commands.show = ({ pos }) => {
     console.log(`  ${'총 수익  '}  ${C.dim('—')}   ${C.dim('입금 기록이 없어 계산할 수 없습니다')}`);
   }
   console.log(`  ${'전일 대비'}  ${pn(r.dProfitKrw, fmtKrw)}`);
+  // OKX 는 이체를 손익으로 치지 않는다 — 잔고에서 누적 이체유입을 뺀 값이 손익
+  if (r.okCumInUsdt || r.okBalUsdt) {
+    console.log(
+      `  ${'OKX 손익 '}  ${pn(r.okPnlKrw, fmtKrw)}   ` +
+      C.dim(`${pn(r.okPnlUsdt, fmtUsdt)} · 잔고 ${fmtNum(r.okBalUsdt)} − 이체 ${fmtNum(r.okCumInUsdt)}`)
+    );
+    console.log(`  ${'OKX 제외'}   ${pn(r.profitCoreKrw, fmtKrw)}   ${C.dim('나머지 누적 손익')}`);
+  }
   if (r.piggyUsdt) {
     console.log(
       `  ${(r.piggyDay > 0 ? `돼지 ${r.piggyDay}일차` : '돼지저금통 ').padEnd(0)} ${fmtKrw(r.piggyKrw)}   ` +
@@ -839,7 +878,7 @@ function summary() {
 /* ------------------------------------------------------------------ 진입 */
 
 const [, , cmdRaw, ...rest] = process.argv;
-const alias = { d: 'deposit', w: 'withdraw', s: 'snap', ls: 'list', avgdiv: 'div', '-h': 'help', '--help': 'help' };
+const alias = { d: 'deposit', w: 'withdraw', s: 'snap', ls: 'list', avgdiv: 'div', okmove: 'okin', 오케이체: 'okin', '-h': 'help', '--help': 'help' };
 const cmd = alias[cmdRaw] || cmdRaw || 'help';
 if (!commands[cmd]) {
   console.error(C.red(`✖ 알 수 없는 명령: ${cmdRaw}`));
