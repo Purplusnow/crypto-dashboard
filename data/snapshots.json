@@ -342,9 +342,12 @@
     "balances": {
       "NA": {
         "usdt": 151.95
+      },
+      "OK": {
+        "usdt": 111.96
       }
     },
-    "fx": 1365,
+    "fx": 1366,
     "bonusSeed": 28846,
     "bonus": 6.25,
     "progress": 33
