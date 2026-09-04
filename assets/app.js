@@ -386,9 +386,10 @@ function render() {
 
   /* ---- 일별 손익 (OKX 분리) ---------------------------------------- */
   // OKX 는 이체가 잦아 잔고 변화가 곧 손익이 아니다. 그래서 손익을 따로 떼어
-  // 두 카드로 나눈다 — 왼쪽은 OKX 를 뺀 나머지, 오른쪽은 OKX 만.
+  // 두 카드로 나눈다 — 위는 OKX 를 뺀 나머지, 아래는 OKX 만.
+  // 좌우로 나누면 막대 간격이 좁아져 값 라벨이 축약되므로 위아래로 쌓는다.
   const s2 = section();
-  const g2 = grid('wide');
+  const g2 = grid('');
   const numOnly = (v) =>
     state.currency === 'KRW' ? Math.round(v).toLocaleString('ko-KR') : fmtNum(v, 2);
   const pnlOpts = {
@@ -420,6 +421,8 @@ function render() {
   g2.appendChild(c3b);
   divergingColumns(h3b, {
     ...pnlOpts,
+    // 아직 기록이 얕은 카드다 — 주 차트보다 낮게 잡아 자리를 덜 차지하게 한다.
+    height: 190,
     label: 'OKX 일별 손익',
     values: rows.map((r) => r[`dOkPnl${K}`]),
   });
