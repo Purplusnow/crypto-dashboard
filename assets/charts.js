@@ -387,7 +387,10 @@ export function divergingColumns(host, cfg) {
     const pad = (hi - lo) * 0.1 || 1;
     const ticks = niceTicks(lo - pad, hi + pad, 4);
     const xIdx = xTickIndices(dates.length);
-    const { sy, sx, innerW } = axes(svg, { W, H, m, yTicks: ticks, yFmt, xLabels: dates.map(shortDate), xIdx });
+    // 주간 집계처럼 한 막대가 기간을 뜻할 때는 축·툴팁 제목을 직접 넘긴다.
+    const xLabels = cfg.xLabels || dates.map(shortDate);
+    const tipTitles = cfg.tipTitles || dates;
+    const { sy, sx, innerW } = axes(svg, { W, H, m, yTicks: ticks, yFmt, xLabels, xIdx });
 
     const slot = dates.length > 1 ? innerW / (dates.length - 1) : innerW;
     const bw = Math.max(2, Math.min(24, slot - 2)); // 슬롯을 꽉 채우지 않는다 (2px 간격)
@@ -460,7 +463,7 @@ export function divergingColumns(host, cfg) {
     attachCrosshair({
       svg, host, tip, W, H, m, n: dates.length, sx,
       onIndex: (i) => ({
-        html: tipNode(dates[i], [{
+        html: tipNode(tipTitles[i], [{
           color: values[i] >= 0 ? 'var(--up)' : 'var(--down)',
           label: label || '증감',
           value: (values[i] > 0 ? '+' : '') + (tipFmt || yFmt)(values[i]),

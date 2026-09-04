@@ -1,5 +1,5 @@
-import { buildSeries, currencyFns, fmtNum, fmtKrw, fmtUsdt, fmtSigned, signOf, acctUsdt } from './core.js';
-import { lineChart, stackedArea, divergingColumns, allocationBar, sparkline, legend } from './charts.js';
+import { buildSeries, currencyFns, fmtNum, fmtKrw, fmtUsdt, fmtSigned, signOf, acctUsdt, addDays } from './core.js';
+import { lineChart, stackedArea, divergingColumns, allocationBar, sparkline, legend, shortDate } from './charts.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -191,6 +191,57 @@ function section(title) {
 function chartHost() {
   const d = document.createElement('div');
   return d;
+}
+
+// 막대 하나가 45px 아래로 좁아지면 값 라벨이 들어갈 자리가 없다.
+// 그 전에 주 단위로 묶어 라벨을 지킨다 — 손익은 더하면 되는 값이라
+// 주간 합계가 그 주에 번(잃은) 금액 그대로다.
+const DAILY_MAX = 45;
+
+function weekStart(iso) {
+  // 월요일 시작. getUTCDay: 0=일 … 6=토
+  const [y, m, d] = iso.split('-').map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return addDays(iso, -((dow + 6) % 7));
+}
+
+/**
+ * 일별 값을 그대로 쓰거나(짧은 구간) 주 단위 합으로 묶어(긴 구간) 돌려준다.
+ * 두 손익 차트가 같은 눈금을 쓰도록 버킷은 한 번만 만들어 공유한다.
+ */
+function buckets(rows) {
+  if (rows.length <= DAILY_MAX) {
+    return {
+      weekly: false,
+      dates: rows.map((r) => r.date),
+      xLabels: rows.map((r) => shortDate(r.date)),
+      tipTitles: rows.map((r) => r.date),
+      groups: rows.map((r) => [r]),
+    };
+  }
+  const groups = [];
+  let key = null;
+  for (const r of rows) {
+    const k = weekStart(r.date);
+    if (k !== key) { groups.push([]); key = k; }
+    groups[groups.length - 1].push(r);
+  }
+  return {
+    weekly: true,
+    dates: groups.map((g) => g[0].date),
+    xLabels: groups.map((g) => shortDate(g[0].date)),
+    tipTitles: groups.map((g) =>
+      g.length > 1
+        ? `${shortDate(g[0].date)}–${shortDate(g[g.length - 1].date)} (${g.length}일)`
+        : `${shortDate(g[0].date)} (1일)`
+    ),
+    groups,
+  };
+}
+
+/** 버킷 안의 일별 손익을 더한다 — 주간 합계가 곧 그 주의 손익 */
+function bucketSum(bk, field) {
+  return bk.groups.map((g) => g.reduce((a, r) => a + r[field], 0));
 }
 
 function acctColor(id) {
@@ -390,10 +441,13 @@ function render() {
   // 좌우로 나누면 막대 간격이 좁아져 값 라벨이 축약되므로 위아래로 쌓는다.
   const s2 = section();
   const g2 = grid('');
+  const bk = buckets(rows);
   const numOnly = (v) =>
     state.currency === 'KRW' ? Math.round(v).toLocaleString('ko-KR') : fmtNum(v, 2);
   const pnlOpts = {
-    dates,
+    dates: bk.dates,
+    xLabels: bk.xLabels,
+    tipTitles: bk.tipTitles,
     height: 250,
     showValues: true,
     labelSigned: false, // 부호는 막대의 위아래 위치가 알려준다
@@ -404,14 +458,15 @@ function render() {
     tipFmt: cur.full,
   };
 
-  const c3 = card('일별 손익', 'OKX 제외');
+  const unit = bk.weekly ? '주간 손익' : '일별 손익';
+  const c3 = card(unit, bk.weekly ? 'OKX 제외 · 주 단위 합계' : 'OKX 제외');
   const h3 = chartHost();
   c3.appendChild(h3);
   g2.appendChild(c3);
   divergingColumns(h3, {
     ...pnlOpts,
-    label: '일별 손익 (OKX 제외)',
-    values: rows.map((r) => r[`dProfitCore${K}`]),
+    label: `${unit} (OKX 제외)`,
+    values: bucketSum(bk, `dProfitCore${K}`),
   });
 
   // OKX 는 이체를 손익으로 치지 않는다 — 누적 손익 = 잔고 − 누적 이체유입
@@ -423,8 +478,8 @@ function render() {
     ...pnlOpts,
     // 아직 기록이 얕은 카드다 — 주 차트보다 낮게 잡아 자리를 덜 차지하게 한다.
     height: 190,
-    label: 'OKX 일별 손익',
-    values: rows.map((r) => r[`dOkPnl${K}`]),
+    label: `OKX ${unit}`,
+    values: bucketSum(bk, `dOkPnl${K}`),
   });
 
   s2.appendChild(g2);
