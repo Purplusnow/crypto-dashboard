@@ -375,13 +375,13 @@
     "date": "2026-09-06",
     "balances": {
       "NA": {
-        "usdt": 6
+        "usdt": 0
       },
       "BT": {
         "krw": 100000
       }
     },
-    "fx": 1363,
+    "fx": 1364,
     "piggy": 0,
     "progress": 35,
     "bonusSeed": 7969
