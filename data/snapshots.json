@@ -385,5 +385,17 @@
     "piggy": 0,
     "progress": 35,
     "bonusSeed": 7969
+  },
+  {
+    "date": "2026-09-07",
+    "balances": {
+      "BT": {
+        "krw": 0
+      },
+      "NA": {
+        "usdt": 73.31
+      }
+    },
+    "fx": 1361
   }
 ]
