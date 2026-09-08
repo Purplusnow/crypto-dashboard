@@ -402,7 +402,7 @@
     "date": "2026-09-08",
     "balances": {
       "NA": {
-        "usdt": 88
+        "usdt": 92
       },
       "OK": {
         "usdt": 0
@@ -411,7 +411,7 @@
         "krw": 0
       }
     },
-    "fx": 1363,
+    "fx": 1358,
     "okIn": 0,
     "bonus": 20,
     "progress": 36,
