@@ -106,7 +106,8 @@
     "account": "BT",
     "currency": "KRW",
     "amount": 100000,
-    "fx": 1364
+    "fx": 1364,
+    "note": "은행→BT"
   },
   {
     "id": "w20260908-012",
@@ -115,6 +116,7 @@
     "account": "BT",
     "currency": "KRW",
     "amount": 133900,
-    "fx": 1362
+    "fx": 1362,
+    "note": "BT→은행"
   }
 ]

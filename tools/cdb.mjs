@@ -306,7 +306,9 @@ async function flow({ flags, pos }, type) {
     amount,
   };
   if (fx) entry.fx = fx;
-  if (flags.note) entry.note = String(flags.note);
+  // 입출금 경로는 은행↔BT 로 고정이다. 메모를 안 주면 그 경로를 그대로 적어
+  // 둔다 — 사이트의 입출금 내역에서 빈 칸으로 보이지 않게.
+  entry.note = flags.note ? String(flags.note) : type === 'deposit' ? '은행→BT' : 'BT→은행';
 
   const sign = type === 'deposit' ? 1 : -1;
 
