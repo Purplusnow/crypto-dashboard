@@ -107,5 +107,14 @@
     "currency": "KRW",
     "amount": 100000,
     "fx": 1364
+  },
+  {
+    "id": "w20260908-012",
+    "date": "2026-09-08",
+    "type": "withdraw",
+    "account": "BT",
+    "currency": "KRW",
+    "amount": 133900,
+    "fx": 1362
   }
 ]
