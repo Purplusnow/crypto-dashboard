@@ -437,11 +437,13 @@
     "date": "2026-09-10",
     "balances": {
       "NA": {
-        "usdt": 30
+        "usdt": 34
       }
     },
     "fx": 1357,
     "bonus": 15,
-    "bonusSeed": 15800
+    "bonusSeed": 15800,
+    "piggy": 0.5,
+    "piggyStart": "2026-09-10"
   }
 ]
