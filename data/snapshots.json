@@ -461,6 +461,8 @@
     },
     "piggy": 0,
     "fx": 1356,
-    "progress": 37
+    "progress": 37,
+    "bonus": 35,
+    "bonusSeed": 0
   }
 ]
