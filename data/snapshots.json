@@ -456,11 +456,11 @@
     "date": "2026-09-11",
     "balances": {
       "NA": {
-        "usdt": 0
+        "usdt": 2
       }
     },
-    "piggy": 0.4,
-    "fx": 1363,
+    "piggy": 0,
+    "fx": 1356,
     "progress": 37
   }
 ]
