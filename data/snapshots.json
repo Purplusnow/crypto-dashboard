@@ -478,12 +478,12 @@
         "usdt": 0
       },
       "NA": {
-        "usdt": 83
+        "usdt": 84.4
       }
     },
     "piggy": 0.27,
     "piggyStart": "2026-09-12",
-    "fx": 1360,
+    "fx": 1361,
     "bonus": 30,
     "bonusSeed": 189
   }
