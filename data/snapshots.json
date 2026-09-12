@@ -483,6 +483,8 @@
     },
     "piggy": 0.27,
     "piggyStart": "2026-09-12",
-    "fx": 1360
+    "fx": 1360,
+    "bonus": 30,
+    "bonusSeed": 189
   }
 ]
