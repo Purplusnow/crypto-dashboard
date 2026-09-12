@@ -457,6 +457,9 @@
     "balances": {
       "NA": {
         "usdt": 2
+      },
+      "BT": {
+        "krw": 100000
       }
     },
     "piggy": 0,
@@ -464,5 +467,22 @@
     "progress": 37,
     "bonus": 35,
     "bonusSeed": 0
+  },
+  {
+    "date": "2026-09-12",
+    "balances": {
+      "BT": {
+        "krw": 0
+      },
+      "OK": {
+        "usdt": 0
+      },
+      "NA": {
+        "usdt": 83
+      }
+    },
+    "piggy": 0.27,
+    "piggyStart": "2026-09-12",
+    "fx": 1360
   }
 ]
