@@ -503,8 +503,14 @@
     "balances": {
       "BT": {
         "krw": 100000
+      },
+      "NA": {
+        "usdt": 46.5
       }
     },
-    "fx": 1358
+    "fx": 1358,
+    "piggy": 7.94,
+    "bonusSeed": 5300,
+    "bonus": 25
   }
 ]
