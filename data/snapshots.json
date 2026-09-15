@@ -513,5 +513,17 @@
     "bonusSeed": 5300,
     "bonus": 25,
     "progress": 38
+  },
+  {
+    "date": "2026-09-15",
+    "balances": {
+      "BT": {
+        "krw": 0
+      },
+      "NA": {
+        "usdt": 82.7
+      }
+    },
+    "fx": 1360
   }
 ]
