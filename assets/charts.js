@@ -364,18 +364,20 @@ export function divergingColumns(host, cfg) {
     // 라벨 배치를 먼저 정한다. 겹치면 축약하기보다 단(段)을 늘려 정보를 지킨다.
     // 3단까지 늘려도 모자랄 때만 축약으로, 그래도 안 되면 극값만 남긴다.
     const TIER = 12;
-    const MAX_TIERS = 3;
+    const MAX_TIERS = 4;
     const slotW = dates.length > 1 ? (W - m.l - m.r) / (dates.length - 1) : W - m.l - m.r;
     let plan = { tiers: 1, fmt: cfg.labelFmt || yFmt, extremes: false };
     if (cfg.showValues && values.length) {
       const full = cfg.labelFmt || yFmt;
       const compact = cfg.labelFmtCompact || full;
       const widthOf = (f) => Math.max(...values.map((v) => f(Math.abs(v)).length + 1)) * 6.2;
-      const tiersFor = (f) => Math.ceil(widthOf(f) / slotW);
+      // 폭 비율은 "최소 몇 단이 필요한가"만 알려준다. 막대 높이가 제각각이라
+      // 같은 단에서도 실제로 겹치는 구간이 생기므로 한 단을 더 얹어 둔다.
+      const tiersFor = (f) => Math.min(MAX_TIERS, Math.ceil(widthOf(f) / slotW) + 1);
       const tf = tiersFor(full);
       const tc = tiersFor(compact);
-      if (tf <= MAX_TIERS) plan = { tiers: Math.max(1, tf), fmt: full, extremes: false };
-      else if (tc <= MAX_TIERS) plan = { tiers: Math.max(1, tc), fmt: compact, extremes: false };
+      if (widthOf(full) / slotW <= MAX_TIERS) plan = { tiers: Math.max(1, tf), fmt: full, extremes: false };
+      else if (widthOf(compact) / slotW <= MAX_TIERS) plan = { tiers: Math.max(1, tc), fmt: compact, extremes: false };
       else plan = { tiers: 1, fmt: compact, extremes: true };
       // 단 수만큼 위아래 여백을 넓힌다
       const pad = (plan.tiers - 1) * TIER;
@@ -421,7 +423,7 @@ export function divergingColumns(host, cfg) {
 
       // 단 오프셋은 막대 끝 기준이라, 높이가 다른 막대끼리는 단이 달라도
       // 실제 y가 겹칠 수 있다. 그래서 실제 상자로 충돌을 검사해 단을 고른다.
-      const place = (fmt) => {
+      const place = (fmt, tiers = plan.tiers) => {
         const boxes = [];
         const out = [];
         let dropped = 0;
@@ -432,7 +434,7 @@ export function divergingColumns(host, cfg) {
           const hw = (text.length * 6.2) / 2;
           const x = sx(i);
           let placed = null;
-          for (let k = 0; k < plan.tiers; k++) {
+          for (let k = 0; k < tiers; k++) {
             const y = v >= 0 ? sy(v) - 6 - k * TIER : sy(v) + 14 + k * TIER;
             const box = { x1: x - hw, x2: x + hw, y1: y - 9, y2: y + 3 };
             const hit = boxes.some(
@@ -447,10 +449,16 @@ export function divergingColumns(host, cfg) {
       };
 
       let laid = place(plan.fmt);
-      // 20% 넘게 못 놓으면 축약으로 한 번 더 시도한다
-      if (!plan.extremes && laid.dropped > keep.size * 0.2 && cfg.labelFmtCompact) {
-        const alt = place(cfg.labelFmtCompact);
-        if (alt.dropped < laid.dropped) laid = alt;
+      // 하나라도 못 놓으면 축약으로 다시 시도한다. 라벨이 짧아지면 상자가 좁아져
+      // 충돌이 풀린다 — "어떤 날은 숫자가 안 보이는" 문제의 원인이 이것이었다.
+      if (!plan.extremes && laid.dropped > 0 && cfg.labelFmtCompact) {
+        // 축약 + 단 하나 더. 여백은 plan.tiers 기준으로 잡혀 있지만 라벨 상자가
+        // 12px라 한 단 더 올려도 SVG 밖으로 나가지 않는다.
+        const more = Math.min(MAX_TIERS, plan.tiers + 1);
+        for (const alt of [place(cfg.labelFmtCompact, plan.tiers), place(plan.fmt, more), place(cfg.labelFmtCompact, more)]) {
+          if (alt.dropped < laid.dropped) laid = alt;
+          if (!laid.dropped) break;
+        }
       }
       for (const p of laid.out) {
         const t = el('text', { x: p.x, y: p.y, 'text-anchor': 'middle' }, { fill: 'var(--text-secondary)' });

@@ -444,6 +444,16 @@ function render() {
   const bk = buckets(rows);
   const numOnly = (v) =>
     state.currency === 'KRW' ? Math.round(v).toLocaleString('ko-KR') : fmtNum(v, 2);
+  // 막대 라벨용 초압축 — 유효숫자를 한 자리 줄여 "6.67만"을 "6.7만"으로 만든다.
+  // 슬롯보다 좁아야 이웃 라벨과 안 겹치므로, 축 눈금(cur.compact)보다 더 짧다.
+  const tight = (v) => {
+    const a = Math.abs(v);
+    const one = (x) => (x >= 100 ? x.toFixed(0) : x.toFixed(1)).replace(/\.0$/, '');
+    if (state.currency !== 'KRW') return a >= 1e4 ? one(a / 1e3) + 'K' : one(a);
+    if (a >= 1e8) return one(a / 1e8) + '억';
+    if (a >= 1e4) return one(a / 1e4) + '만';
+    return Math.round(a).toLocaleString('ko-KR');
+  };
   const pnlOpts = {
     dates: bk.dates,
     xLabels: bk.xLabels,
@@ -453,7 +463,7 @@ function render() {
     labelSigned: false, // 부호는 막대의 위아래 위치가 알려준다
     // 통화 기호 없이 숫자만 — 축과 카드 제목이 단위를 이미 말해준다
     labelFmt: numOnly,
-    labelFmtCompact: (v) => cur.compact(v).replace('₩', ''),
+    labelFmtCompact: tight,
     yFmt: cur.compact,
     tipFmt: cur.full,
   };
