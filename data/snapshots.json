@@ -555,6 +555,9 @@
     "balances": {
       "NA": {
         "usdt": 0
+      },
+      "BT": {
+        "krw": 100000
       }
     },
     "piggy": 0,
