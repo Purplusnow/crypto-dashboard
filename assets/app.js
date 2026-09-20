@@ -276,6 +276,10 @@ function render() {
   const K = cur.key; // 'Krw' | 'Usdt'
   const dates = rows.map((r) => r.date);
   const last = rows[rows.length - 1];
+  // 구간 수익 = 구간 끝 누적수익 − 구간 직전 누적수익.
+  // 두 시점의 차이라서 구간 안에서 넣은 입금은 알아서 상쇄된다.
+  // 기준점이 없으면(전체 범위) 구간 수익이 곧 총 수익이다.
+  const base = allRows[allRows.length - n - 1] || null;
   const other = state.currency === 'KRW' ? fmtUsdt(last.valUsdt) : fmtKrw(last.valKrw);
 
   /* ---- 히어로 --------------------------------------------------- */
@@ -309,6 +313,8 @@ function render() {
   // 판단 기준은 "입출금 기록이 하나라도 있는가"다. 순 입금액이 0이나 음수여도
   // (전액 회수·초과 인출) 수익은 계산된다 — 오히려 그때가 확실한 실현 손익이다.
   const hasBasis = state.data.flows.some((f) => f.date <= last.date);
+  // 미래분이 있으면 본값은 "미래분 제외" 기준, 괄호가 포함 기준이다.
+  const profitKey = last[`future${K}`] > 0 ? `profitEx${K}` : `profit${K}`;
 
   const side = document.createElement('div');
   side.className = 'side';
@@ -334,11 +340,17 @@ function render() {
           ? '입금 기록을 먼저 넣어야 수익이 나옵니다'
           : `입금 ${state.data.flows.filter((f) => f.sign > 0).length}건 − 출금 ${state.data.flows.filter((f) => f.sign < 0).length}건`,
     }),
-    tile('총 수익', hasBasis ? signed(last[last[`future${K}`] > 0 ? `profitEx${K}` : `profit${K}`], cur.full) : '—', {
+    tile('총 수익', hasBasis ? signed(last[profitKey], cur.full) : '—', {
       ex: hasBasis && last[`future${K}`] > 0 ? signed(last[`profit${K}`], cur.full) : null,
       spark: hasBasis ? rows.map((r) => r[`profit${K}`]) : null,
       sparkColor: last[`profit${K}`] >= 0 ? 'var(--up)' : 'var(--down)',
-      note: hasBasis ? `${rows.length}일 구간` : '원금 없음',
+      // 총 수익은 언제나 누적(전체 기간)이다 — 원금이 누적이기 때문.
+      // 기간을 바꿔도 안 변하는 게 맞고, 대신 그 구간에서 얼마였는지를 여기 적는다.
+      note: !hasBasis
+        ? '원금 없음'
+        : base
+          ? `최근 ${rows.length}일 ${signed(last[profitKey] - base[profitKey], cur.full)}`
+          : '전체 기간 누적',
     }),
     tile('예정된 보너스', cur.full(last[`bonus${K}`]), {
       spark: rows.map((r) => r[`bonus${K}`]),
