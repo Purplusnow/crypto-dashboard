@@ -121,10 +121,26 @@ export function buildSeries(config, flows, snapshots) {
   // 나머지 손익에서는 이 값을 뺀다.
   const splitId = config.pnlSplitAccount || null;
 
-  const snaps = (snapshots || [])
+  let snaps = (snapshots || [])
     .filter((s) => isDate(s.date))
     .map((s) => normalizeSnapshot(s, ids))
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+  // 기록하지 않은 날은 행 자체가 없어서 차트에서 통째로 건너뛰어진다.
+  // 달력의 빈 날을 채워 넣으면 carry-forward 가 직전 값을 그대로 물려주므로
+  // 그날 손익이 0 으로 남는다 — "기록 없음"과 "변동 없음"을 구분하기 위해서다.
+  if (snaps.length > 1) {
+    const filled = [];
+    for (let i = 0; i < snaps.length; i++) {
+      if (i > 0) {
+        for (let d = addDays(snaps[i - 1].date, 1); d < snaps[i].date; d = addDays(d, 1)) {
+          filled.push(normalizeSnapshot({ date: d, balances: {} }, ids));
+        }
+      }
+      filled.push(snaps[i]);
+    }
+    snaps = filled;
+  }
 
   // fx carry-forward → backward-fill
   let lastFx = null;
