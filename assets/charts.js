@@ -428,7 +428,8 @@ export function divergingColumns(host, cfg) {
         const out = [];
         let dropped = 0;
         values.forEach((v, i) => {
-          if (!keep.has(i) || v === 0) return;
+          // 0 도 라벨을 단다 — "그날은 손익이 없었다"는 것도 정보다.
+          if (!keep.has(i)) return;
           // 부호는 막대의 위아래 위치가, 통화는 축이 이미 알려준다.
           const text = (cfg.labelSigned === false ? '' : v > 0 ? '+' : '−') + fmt(Math.abs(v));
           const hw = (text.length * 6.2) / 2;
