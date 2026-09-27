@@ -649,5 +649,10 @@
     "piggyStart": "2026-09-27",
     "bonusSeed": 32777,
     "fx": 1360
+  },
+  {
+    "date": "2026-09-28",
+    "balances": {},
+    "progress": 45
   }
 ]
