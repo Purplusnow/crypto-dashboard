@@ -704,5 +704,14 @@
     "bonus": 0,
     "bonusSeed": 0,
     "piggy": 0
+  },
+  {
+    "date": "2026-10-06",
+    "balances": {
+      "NA": {
+        "usdt": 133
+      }
+    },
+    "fx": 1351
   }
 ]
