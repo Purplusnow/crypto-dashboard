@@ -700,6 +700,9 @@
         "usdt": 134
       }
     },
-    "fx": 1353
+    "fx": 1353,
+    "bonus": 0,
+    "bonusSeed": 0,
+    "piggy": 0
   }
 ]
