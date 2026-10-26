@@ -248,5 +248,15 @@
     "amount": 100000,
     "fx": 1345,
     "note": "은행→BT"
+  },
+  {
+    "id": "d20261025-026",
+    "date": "2026-10-25",
+    "type": "deposit",
+    "account": "BT",
+    "currency": "KRW",
+    "amount": 100000,
+    "fx": 1339,
+    "note": "은행→BT"
   }
 ]
